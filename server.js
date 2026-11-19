@@ -703,11 +703,20 @@ app.get('/api/admin/leads.csv', auth.requireAuth, auth.requireAdmin, (req, res) 
 
 // ---------- Estático y errores ----------
 app.use('/api', (_req, res) => res.status(404).json({ error: 'Ruta no encontrada.' }));
-app.use(express.static(path.join(__dirname, 'public'), {
-  maxAge: '1h',
-  setHeaders: (res, file) => { if (file.endsWith('.html')) res.setHeader('Cache-Control', 'no-cache'); },
-}));
-app.get('*', (_req, res) => { res.setHeader('Cache-Control', 'no-cache'); res.sendFile(path.join(__dirname, 'public', 'index.html')); });
+const staticOpts = { maxAge: '1h', setHeaders: (res, file) => { if (file.endsWith('.html')) res.setHeader('Cache-Control', 'no-cache'); } };
+
+// Plataforma de miembros (SPA) en /app/.
+app.get('/app', (req, res, next) => (req.path === '/app' && !req.originalUrl.startsWith('/app/') ? res.redirect(301, '/app/') : next()));
+app.use('/app', express.static(path.join(__dirname, 'public'), staticOpts));
+app.get('/app/*', (_req, res) => { res.setHeader('Cache-Control', 'no-cache'); res.sendFile(path.join(__dirname, 'public', 'index.html')); });
+
+// Sitio de presentación en la raíz. Su config.js apunta a esta misma plataforma.
+app.get('/config.js', (_req, res) => {
+  res.type('application/javascript').setHeader('Cache-Control', 'no-cache');
+  res.send("window.ELEVATION_CONFIG = { appUrl: '/app', apiUrl: '' };\n");
+});
+app.use(express.static(path.join(__dirname, 'sitio'), { ...staticOpts, index: 'index.html' }));
+app.use((_req, res) => res.status(404).sendFile(path.join(__dirname, 'sitio', '404.html')));
 
 app.use((err, _req, res, _next) => {
   if (err.type === 'entity.parse.failed') return res.status(400).json({ error: 'JSON no válido.' });

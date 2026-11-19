@@ -68,6 +68,8 @@
   };
 
   const go = (p) => { location.hash = '#' + p; };
+  // La portada pública es el sitio de presentación; la plataforma vive en /app/.
+  const SITE_HOME = window.ELEVATION_SITE || '/';
   const fmtDate = (ts) => new Date(ts).toLocaleDateString('es', { day: 'numeric', month: 'short', year: 'numeric' });
   const fmtTime = (ts) => new Date(ts).toLocaleString('es', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
   const fmtLong = (ts) => new Date(ts).toLocaleString('es', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
@@ -158,11 +160,11 @@
             u.role === 'admin' ? link('/admin', 'Administración', 'admin') : null,
             h('a', { href: '#/', onclick: logout }, 'Salir'))),
       ] : [
-        link('/', 'Inicio', 'inicio'), link('/planes', 'Planes', 'planes'), link('/login', 'Entrar', 'login'),
+        h('a', { href: SITE_HOME }, 'Inicio'), link('/planes', 'Planes', 'planes'), link('/login', 'Entrar', 'login'),
         h('a', { href: '#/registro', class: 'btn primary small' }, 'Empieza gratis'),
       ]);
     return h('header', { class: 'topbar' }, h('div', { class: 'container' },
-      h('a', { href: u ? '#/panel' : '#/', class: 'brand', 'aria-label': 'Elevation, inicio' }, h('img', { src: '/img/logo-wordmark.png', alt: 'Elevation', width: 204, height: 26, class: 'logo-light' }), h('img', { src: '/img/logo-wordmark-dark.png', alt: '', width: 204, height: 26, class: 'logo-dark' })),
+      h('a', { href: u ? '#/panel' : SITE_HOME, class: 'brand', 'aria-label': 'Elevation, inicio' }, h('img', { src: 'img/logo-wordmark.png', alt: 'Elevation', width: 204, height: 26, class: 'logo-light' }), h('img', { src: 'img/logo-wordmark-dark.png', alt: '', width: 204, height: 26, class: 'logo-dark' })),
       h('button', { class: 'menu-btn', 'aria-label': 'Abrir menú', 'aria-controls': 'main-nav', onclick: (e) => { const o = nav.classList.toggle('open'); e.currentTarget.setAttribute('aria-expanded', o); } }, '☰'),
       nav));
   }
@@ -258,69 +260,6 @@
   }
 
   // ---------- Vistas públicas ----------
-  async function viewLanding() {
-    setTitle('');
-    if (!state.catalog) { try { await loadCatalog(); } catch {} }
-    const phases = state.catalog || [];
-    const totalLessons = phases.reduce((a, p) => a + p.lessons.length, 0);
-    page('inicio',
-      h('section', { class: 'hero' }, h('div', { class: 'container' },
-        h('div', {},
-          h('div', { class: 'eyebrow' }, 'Escuela de estrategia política'),
-          h('h1', {}, 'Latinoamérica no necesita más asesores. Necesita ', h('em', {}, 'otra forma de hacer estrategia.')),
-          h('p', { class: 'lead' }, 'Un método en cuatro fases, asistentes de IA, datos y comunidad para construir una carrera política con rigor, desde el primer día y a un costo accesible.'),
-          h('div', { class: 'row mt' },
-            h('a', { href: '#/registro', class: 'btn primary' }, 'Empieza con 3 días gratis'),
-            h('a', { href: '#/planes', class: 'btn ghost' }, 'Ver planes')),
-          h('div', { class: 'hero-stats' },
-            [[phases.length || 4, 'fases'], [totalLessons || 30, 'lecciones'], [4, 'asistentes IA'], ['10', 'años de ruta']]
-              .map(([n, t]) => h('div', {}, h('strong', {}, n), h('span', {}, t))))),
-        h('div', { class: 'hero-art' }, h('div', { class: 'disc' }, h('img', { src: '/img/logo-mark.png', alt: '' }))))),
-      h('section', { class: 'section' }, h('div', { class: 'container' },
-        h('h2', {}, 'Una ruta completa: Start → Grow → Launch → Scale'),
-        h('p', { class: 'muted' }, 'Cada fase termina con entregables reales: tu primer discurso, un mapa de actores, un plan de campaña, un informe temático.'),
-        h('ol', { class: 'timeline mt' }, phases.map((p) => h('li', { class: 'card lift' },
-          h('div', { class: 'phase-num' }, `Fase ${p.order} · ${p.horizon}`),
-          h('h3', {}, p.name),
-          h('p', { class: 'small muted' }, p.title),
-          h('p', { class: 'small' }, p.subtitle),
-          h('p', { class: 'small muted', style: 'margin:0' }, `${p.lessons.length} lecciones · primera gratis`)))))),
-      h('section', { class: 'section soft' }, h('div', { class: 'container' },
-        h('h2', {}, 'Por qué la mayoría abandona antes de empezar'),
-        h('p', { class: 'muted' }, 'No es falta de talento: es una triple brecha de método, acceso y datos que convierte la motivación ciudadana en frustración.'),
-        h('div', { class: 'grid c3 mt' },
-          h('div', { class: 'card' }, h('h3', {}, 'Método'), h('p', { class: 'small' }, 'Una hoja de ruta integral, con lecciones, checklists y entregables, en lugar de consultoras que funcionan como cajas negras.')),
-          h('div', { class: 'card' }, h('h3', {}, 'Acceso'), h('p', { class: 'small' }, 'Formación, mentores y comunidad a un precio fijo y bajo, en vez de tickets inalcanzables.')),
-          h('div', { class: 'card' }, h('h3', {}, 'Datos'), h('p', { class: 'small' }, 'Decidir con métricas y no con intuición: un dashboard de KPIs con las metas de cada fase.'))))),
-      h('section', { class: 'section' }, h('div', { class: 'container' },
-        h('h2', {}, 'Qué incluye la plataforma'),
-        h('div', { class: 'grid c3 mt' },
-          [['Formación modular', 'Ruta Start → Grow → Launch → Scale con lecciones, checklists y entregables descargables.'],
-           ['Asistentes virtuales', 'Nova (discurso), Atenea (estrategia), Freya (síntesis) y Charlie (logística). Conocen tu fase y tus entregables.'],
-           ['Revisión de entregables', 'Pide a un asistente que revise tu trabajo con la consigna de la lección y te diga qué falta.'],
-           ['Dashboard KPI', 'Registra libros, presentaciones, aliados, medios o donantes y mira tu avance hacia cada hito.'],
-           ['Comunidad y agenda', 'Canales abiertos y cerrados, sesiones en vivo, mentorías grupales y convocatorias.'],
-           ['Hitos verificables', 'Criterios claros para saber cuándo una fase está realmente completa.']]
-            .map(([t, d]) => h('div', { class: 'card lift' }, h('h3', {}, t), h('p', { class: 'small muted' }, d)))))),
-      h('section', { class: 'section soft' }, h('div', { class: 'container' },
-        h('h2', {}, 'Para quién es'),
-        h('div', { class: 'grid c3 mt' },
-          h('div', { class: 'card' }, h('span', { class: 'badge blue' }, '18–27 años'), h('h3', { class: 'mt-s' }, 'Políticos noveles y activistas'), h('p', { class: 'small' }, 'Estudiantes o recién graduados con ambición de incidir en su comunidad, pero sin hoja de ruta estratégica.')),
-          h('div', { class: 'card' }, h('span', { class: 'badge blue' }, '28–40 años'), h('h3', { class: 'mt-s' }, 'Consultores y profesionales emergentes'), h('p', { class: 'small' }, 'Con experiencia táctica en redes, diseño o prensa, que necesitan un framework político completo.')),
-          h('div', { class: 'card' }, h('span', { class: 'badge blue' }, '25–35 años'), h('h3', { class: 'mt-s' }, 'Futuros candidatos'), h('p', { class: 'small' }, 'Profesionales con reputación local que quieren explorar la carrera política con un camino claro, ético y medible.'))))),
-      h('section', { class: 'section' }, h('div', { class: 'narrow' },
-        h('h2', { class: 'center' }, 'Preguntas frecuentes'),
-        [['¿Necesito experiencia política previa?', 'No. La fase Start está pensada para empezar desde cero: diagnóstico, narrativa e identidad antes de cualquier acción pública.'],
-         ['¿La escuela promueve alguna ideología?', 'No. El método sirve a personas de cualquier orientación política. Los asistentes tampoco hacen propaganda a favor o en contra de partidos o candidatos.'],
-         ['¿Qué pasa al terminar la prueba de 3 días?', 'Tu cuenta vuelve al plan Free: conservas tu progreso y tus entregables, y puedes seguir con la primera lección de cada fase.'],
-         ['¿Puedo descargar mis entregables?', 'Sí. Cada entregable se guarda automáticamente y puedes descargarlos todos en un archivo, además de exportar todos tus datos desde Mi cuenta.']]
-          .map(([q, a]) => h('details', { class: 'faq' }, h('summary', {}, q), h('p', { class: 'muted' }, a))))),
-      h('section', { class: 'section center soft' }, h('div', { class: 'narrow' },
-        h('h2', {}, 'La estrategia también puede ser un acto de verdad'),
-        h('p', { class: 'muted' }, 'Crea tu cuenta y empieza hoy: tienes 3 días de Starter sin costo.'),
-        h('a', { href: '#/registro', class: 'btn primary' }, 'Crear mi cuenta'))));
-  }
-
   // `query` puede traer name, email y country desde el test del sitio de presentación.
   function authForm(mode, query = new URLSearchParams()) {
     const isReg = mode === 'registro';
@@ -1132,7 +1071,7 @@
       if ((root === 'login' || root === 'registro') && state.user) return go('/panel');
       if (root === 'admin' && state.user.role !== 'admin') return go('/panel');
       switch (root) {
-        case '': return state.user ? go('/panel') : await viewLanding();
+        case '': return state.user ? go('/panel') : location.replace(SITE_HOME);
         case 'login': return authForm('login');
         case 'registro': return authForm('registro', query);
         case 'planes': return await viewPlans();

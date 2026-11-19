@@ -219,3 +219,21 @@ test('leads del test: CORS para el sitio, validación y vista de admin', async (
   assert.match((await admin.get('/api/admin/leads.csv')).data, /lead@test\.com/);
   assert.ok((await admin.get('/api/admin/stats')).data.leads >= 1);
 });
+
+test('el sitio de presentación es la portada y la plataforma vive en /app/', async () => {
+  const home = await fetch(base + '/');
+  assert.equal(home.status, 200);
+  assert.match(await home.text(), /We elevate/);
+  const cfg = await (await fetch(base + '/config.js')).text();
+  assert.match(cfg, /appUrl: '\/app'/);
+  const redirect = await fetch(base + '/app', { redirect: 'manual' });
+  assert.equal(redirect.status, 301);
+  const spa = await fetch(base + '/app/');
+  assert.match(await spa.text(), /js\/app\.js/);
+  assert.equal((await fetch(base + '/app/css/styles.css')).status, 200);
+  assert.equal((await fetch(base + '/app/panel/cualquier-ruta')).status, 200, 'rutas internas de la plataforma devuelven la SPA');
+  assert.equal((await fetch(base + '/data/test-data.js')).status, 200);
+  const missing = await fetch(base + '/no-existe');
+  assert.equal(missing.status, 404);
+  assert.match(await missing.text(), /Página no encontrada/);
+});

@@ -1,7 +1,10 @@
 const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
 
-/* Configuración (config.js): dirección de la plataforma de miembros */
+/* Configuración (config.js): dirección de la plataforma de miembros (appUrl) y de su API (apiUrl).
+   apiUrl vacío = mismo dominio; sin apiUrl se usa appUrl; apiUrl false = no enviar resultados. */
 const CFG=window.ELEVATION_CONFIG||{}, APP=String(CFG.appUrl||'').replace(/\/+$/,'');
+const API=CFG.apiUrl===false?null:String(CFG.apiUrl??APP).replace(/\/+$/,'');
+const APP_BASE=/\.html?$/.test(APP)?APP:APP+'/';
 
 /* Navegación entre pantallas: portada y lección de muestra */
 const VIEWS=['inicio','leccion'];
@@ -19,12 +22,12 @@ addEventListener('hashchange',show);
 /* Botones de membresía: llevan a la plataforma (entrar o registrarse, con los datos del test si los hay) */
 function appLink(kind){
   if(!APP)return null;
-  if(kind!=='registro')return APP+'/#/login';
+  if(kind!=='registro')return APP_BASE+'#/login';
   const q=new URLSearchParams();
   if(st.name&&!st.demo)q.set('name',st.name.trim());
   if(st.email&&!st.demo)q.set('email',st.email.trim());
   if(st.country&&st.country!=='Otro país')q.set('country',st.country);
-  const qs=q.toString(); return APP+'/#/registro'+(qs?'?'+qs:'');
+  const qs=q.toString(); return APP_BASE+'#/registro'+(qs?'?'+qs:'');
 }
 document.addEventListener('click',e=>{
   const a=e.target.closest('[data-app]');
@@ -212,10 +215,10 @@ function tResult(){
   </div>`;
 }
 function sendLead(){
-  if(!APP||st.demo||st.sent||!st.email)return;
+  if(!APP||API===null||st.demo||st.sent||!st.email)return;
   st.sent=true;
   const {e,p}=scores();
-  fetch(APP+'/api/leads',{method:'POST',headers:{'Content-Type':'application/json'},mode:'cors',
+  fetch(API+'/api/leads',{method:'POST',headers:{'Content-Type':'application/json'},mode:API?'cors':'same-origin',
     body:JSON.stringify({name:st.name,email:st.email,country:st.country,economia:e,orden:p,zona:T.Z[zoneOf(e,p)].name,answers:st.ans})}).catch(()=>{st.sent=false});
 }
 function itest(move){

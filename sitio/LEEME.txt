@@ -1,7 +1,10 @@
 ELEVATION · SITIO DE PRESENTACIÓN
 ==================================
 
-Sitio estático: no necesita base de datos ni programas en el servidor.
+Si publicas la plataforma completa (servidor Node), este sitio ya va incluido como
+portada principal: no tienes que subirlo aparte ni configurar nada.
+
+Si prefieres subirlo solo, es un sitio estático: no necesita base de datos ni programas en el servidor.
 Funciona en cualquier hosting (cPanel, Hostinger, SiteGround, Netlify, Vercel, GitHub Pages…).
 
 CÓMO SUBIRLO
