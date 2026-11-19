@@ -250,7 +250,7 @@ app.get('/api/lessons/:id', auth.requireAuth, (req, res) => {
   if (!l) return res.status(404).json({ error: 'Lección no encontrada.' });
   const ph = content.getPhase(l.phaseId);
   if (!can(req.user, l.minPlan)) {
-    return res.status(403).json({ error: 'Esta lección requiere un plan superior.', minPlan: l.minPlan, lesson: { id: l.id, title: l.title, summary: l.summary } });
+    return res.status(403).json({ error: 'Esta lección requiere una membresía superior.', minPlan: l.minPlan, lesson: { id: l.id, title: l.title, summary: l.summary } });
   }
   const uid = req.user.id;
   const checks = db.prepare('SELECT idx FROM checks WHERE user_id = ? AND lesson_id = ?').all(uid, l.id).map((r) => r.idx);
@@ -278,7 +278,7 @@ app.get('/api/lessons/:id', auth.requireAuth, (req, res) => {
 function lessonAccess(req, res) {
   const l = content.getLesson(req.params.id);
   if (!l) { res.status(404).json({ error: 'Lección no encontrada.' }); return null; }
-  if (!can(req.user, l.minPlan)) { res.status(403).json({ error: 'Esta lección requiere un plan superior.' }); return null; }
+  if (!can(req.user, l.minPlan)) { res.status(403).json({ error: 'Esta lección requiere una membresía superior.' }); return null; }
   return l;
 }
 
@@ -312,11 +312,11 @@ app.put('/api/lessons/:id/deliverable', auth.requireAuth, (req, res) => {
 app.post('/api/lessons/:id/review', auth.requireAuth, wrap(async (req, res) => {
   const l = lessonAccess(req, res); if (!l) return;
   const rv = reviewerFor(req.user, l.phaseId);
-  if (!rv) return res.status(403).json({ error: 'La revisión con IA está disponible desde el plan Starter.', minPlan: 'starter' });
+  if (!rv) return res.status(403).json({ error: 'La revisión con IA está disponible desde la membresía Starter.', minPlan: 'starter' });
   const del = db.prepare('SELECT body FROM deliverables WHERE user_id = ? AND lesson_id = ?').get(req.user.id, l.id);
   if (!del || del.body.trim().length < 40) return res.status(400).json({ error: 'Guarda un entregable de al menos unas líneas antes de pedir revisión.' });
   const limit = DAILY_CHAT_LIMIT[effectivePlan(req.user).plan] || 0;
-  if (usedToday(req.user.id) >= limit) return res.status(429).json({ error: `Alcanzaste el límite diario de ${limit} mensajes de tu plan.` });
+  if (usedToday(req.user.id) >= limit) return res.status(429).json({ error: `Alcanzaste el límite diario de ${limit} mensajes de tu membresía.` });
   if (!auth.rateLimit('review:' + req.user.id, 5, 600000)) return res.status(429).json({ error: 'Espera unos minutos antes de pedir otra revisión.' });
   let out;
   try {
@@ -335,7 +335,7 @@ app.post('/api/milestones', auth.requireAuth, (req, res) => {
   const ph = content.getPhase(String(req.body.phase));
   const idx = Number(req.body.idx);
   if (!ph || !Number.isInteger(idx) || idx < 0 || idx >= ph.milestones.length) return res.status(400).json({ error: 'Hito no válido.' });
-  if (!can(req.user, ph.minPlan)) return res.status(403).json({ error: 'Esta fase requiere un plan superior.' });
+  if (!can(req.user, ph.minPlan)) return res.status(403).json({ error: 'Esta fase requiere una membresía superior.' });
   if (req.body.done) db.prepare('INSERT OR IGNORE INTO milestones_done (user_id, phase_id, idx) VALUES (?,?,?)').run(req.user.id, ph.id, idx);
   else db.prepare('DELETE FROM milestones_done WHERE user_id = ? AND phase_id = ? AND idx = ?').run(req.user.id, ph.id, idx);
   res.json({ ok: true });
@@ -446,7 +446,7 @@ app.get('/api/community/channels', auth.requireAuth, (req, res) => {
 app.get('/api/community/posts', auth.requireAuth, (req, res) => {
   const ch = channelOf(String(req.query.channel));
   if (!ch) return res.status(400).json({ error: 'Canal no válido.' });
-  if (!can(req.user, ch.minPlan)) return res.status(403).json({ error: 'Este canal requiere un plan superior.', minPlan: ch.minPlan });
+  if (!can(req.user, ch.minPlan)) return res.status(403).json({ error: 'Este canal requiere una membresía superior.', minPlan: ch.minPlan });
   const offset = Math.max(0, Math.min(10000, Number(req.query.offset) || 0));
   const posts = db.prepare(`
     SELECT p.id, p.title, p.body, p.created_at, p.pinned, u.name AS author, u.role AS author_role,
@@ -458,7 +458,7 @@ app.get('/api/community/posts', auth.requireAuth, (req, res) => {
 app.post('/api/community/posts', auth.requireAuth, (req, res) => {
   const ch = channelOf(String(req.body.channel));
   if (!ch) return res.status(400).json({ error: 'Canal no válido.' });
-  if (!can(req.user, ch.minPlan)) return res.status(403).json({ error: 'Este canal requiere un plan superior.' });
+  if (!can(req.user, ch.minPlan)) return res.status(403).json({ error: 'Este canal requiere una membresía superior.' });
   if (!auth.rateLimit('post:' + req.user.id, 10, 3600000)) return res.status(429).json({ error: 'Has publicado demasiado. Intenta más tarde.' });
   const title = clean(req.body.title, 140), body = clean(req.body.body, 4000);
   if (title.length < 3 || body.length < 3) return res.status(400).json({ error: 'Escribe un título y un mensaje.' });
@@ -469,7 +469,7 @@ app.post('/api/community/posts', auth.requireAuth, (req, res) => {
 function postAccess(req, res) {
   const p = db.prepare('SELECT p.*, u.name AS author, u.role AS author_role FROM posts p JOIN users u ON u.id = p.user_id WHERE p.id = ?').get(req.params.id);
   if (!p) { res.status(404).json({ error: 'Publicación no encontrada.' }); return null; }
-  if (!can(req.user, channelOf(p.channel).minPlan)) { res.status(403).json({ error: 'Este canal requiere un plan superior.' }); return null; }
+  if (!can(req.user, channelOf(p.channel).minPlan)) { res.status(403).json({ error: 'Este canal requiere una membresía superior.' }); return null; }
   return p;
 }
 
@@ -555,7 +555,7 @@ app.get('/api/assistants', auth.requireAuth, (req, res) => {
 app.get('/api/assistants/:id/history', auth.requireAuth, (req, res) => {
   const a = ASSISTANTS[req.params.id];
   if (!a) return res.status(404).json({ error: 'Asistente no encontrado.' });
-  if (!can(req.user, a.minPlan)) return res.status(403).json({ error: 'Este asistente requiere un plan superior.', minPlan: a.minPlan });
+  if (!can(req.user, a.minPlan)) return res.status(403).json({ error: 'Este asistente requiere una membresía superior.', minPlan: a.minPlan });
   const rows = db.prepare('SELECT role, content, created_at FROM chat_msgs WHERE user_id = ? AND assistant = ? ORDER BY id DESC LIMIT 40').all(req.user.id, a.id).reverse();
   res.json({ messages: rows });
 });
@@ -570,11 +570,11 @@ app.delete('/api/assistants/:id/history', auth.requireAuth, (req, res) => {
 app.post('/api/assistants/:id/chat', auth.requireAuth, wrap(async (req, res) => {
   const a = ASSISTANTS[req.params.id];
   if (!a) return res.status(404).json({ error: 'Asistente no encontrado.' });
-  if (!can(req.user, a.minPlan)) return res.status(403).json({ error: 'Este asistente requiere un plan superior.', minPlan: a.minPlan });
+  if (!can(req.user, a.minPlan)) return res.status(403).json({ error: 'Este asistente requiere una membresía superior.', minPlan: a.minPlan });
   const message = clean(req.body.message, 4000);
   if (!message) return res.status(400).json({ error: 'Escribe un mensaje.' });
   const limit = DAILY_CHAT_LIMIT[effectivePlan(req.user).plan] || 0;
-  if (usedToday(req.user.id) >= limit) return res.status(429).json({ error: `Alcanzaste el límite diario de ${limit} mensajes de tu plan.` });
+  if (usedToday(req.user.id) >= limit) return res.status(429).json({ error: `Alcanzaste el límite diario de ${limit} mensajes de tu membresía.` });
   if (!auth.rateLimit('chat:' + req.user.id, 12, 60000)) return res.status(429).json({ error: 'Vas muy rápido. Espera un momento.' });
 
   const history = db.prepare('SELECT role, content FROM chat_msgs WHERE user_id = ? AND assistant = ? ORDER BY id DESC LIMIT 12').all(req.user.id, a.id).reverse();

@@ -3,8 +3,8 @@ const { p, h, ul, ol, quote, callout, table } = require('./h');
 module.exports = {
   id: 'scale',
   order: 4,
-  name: 'Scale',
-  title: 'Posicionamiento y Especialización',
+  name: 'Fase 4',
+  title: 'Posicionamiento y especialización',
   subtitle: 'Ser referente · Producir contenido · Ampliar alcance · Construir estructura',
   horizon: 'Año 6–10',
   minPlan: 'pro',
@@ -53,11 +53,11 @@ module.exports = {
         ]),
       ],
       checklist: [
-        'Confirmé que los hitos de Launch están consolidados.',
+        'Confirmé que los hitos de la Fase 3 están consolidados.',
         'Escribí en una frase la transformación que busco lograr en esta fase.',
       ],
       deliverable: {
-        title: 'Punto de partida de Scale',
+        title: 'Punto de partida de la Fase 4',
         prompt: 'Describe dónde estás hoy en cada pilar y qué quieres haber logrado a los 4 años.',
       },
     },
@@ -224,12 +224,12 @@ module.exports = {
     },
     {
       id: 'e7',
-      title: 'Gestión de imagen y prevención de crisis en Scale',
+      title: 'Gestión de imagen y prevención de crisis en la Fase 4',
       minutes: 14,
       summary: 'Evolucionar la imagen pública, ser selectivo con la exposición y auditar tus vulnerabilidades.',
       blocks: [
         h('La evolución de la imagen pública'),
-        table(['Imagen en Start–Launch', 'Imagen objetivo en Scale'], [
+        table(['Imagen en las fases 1 a 3', 'Imagen objetivo en la Fase 4'], [
           ['Entusiasta, nuevo, prometedor', 'Sólido, profundo, confiable'],
           ['Habla de problemas', 'Propone soluciones con sustento'],
           ['Conocido en su territorio', 'Reconocido más allá de su territorio'],
@@ -265,7 +265,7 @@ module.exports = {
     },
     {
       id: 'e8',
-      title: 'Cierre: hitos y errores críticos de Scale',
+      title: 'Cierre: hitos y errores críticos de la Fase 4',
       minutes: 7,
       summary: 'Verifica los hitos centrales antes de avanzar a una candidatura de escala media.',
       blocks: [
@@ -286,7 +286,7 @@ module.exports = {
         'Definí el plan de las siguientes 18 meses hacia la candidatura de escala media.',
       ],
       deliverable: {
-        title: 'Autoevaluación de hitos de Scale',
+        title: 'Autoevaluación de hitos de la Fase 4',
         prompt: 'Estado y evidencia por hito, brecha principal y plan de cierre antes de la candidatura de escala media.',
       },
     },

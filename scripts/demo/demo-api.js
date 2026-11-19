@@ -31,7 +31,7 @@
     [['libros', 2, 70], ['libros', 3, 40], ['libros', 1, 10], ['presentaciones', 2, 30], ['presentaciones', 3, 8], ['aliados', 9, 60], ['aliados', 16, 20], ['aliados', 22, 3], ['seguidores', 850, 50], ['seguidores', 1320, 5]]
       .forEach(([m, v, d]) => s.kpis.push({ id: ++s.seq, user_id: 2, metric: m, value: v, day: new Date(t - d * DAY).toISOString().slice(0, 10), note: null, created_at: t - d * DAY }));
     const p1 = ++s.seq, p2 = ++s.seq;
-    s.posts.push({ id: p1, channel: 'abierta', user_id: 1, title: 'Bienvenida a la comunidad', body: 'Preséntate: quién eres, desde qué territorio escribes y en qué fase estás. Esta es la demo de la comunidad: puedes publicar y responder.', created_at: t - 10 * DAY, pinned: 1 });
+    s.posts.push({ id: p1, channel: 'abierta', user_id: 1, title: 'Bienvenida a tu red', body: 'Preséntate: quién eres, desde qué territorio escribes y en qué fase estás. Esta es la demo de Mi red: puedes publicar y responder.', created_at: t - 10 * DAY, pinned: 1 });
     s.posts.push({ id: p2, channel: 'abierta', user_id: 3, title: '¿Cómo clasifico a los actores fríos?', body: 'Estoy armando mi mapa de actores y no sé dónde poner a quienes no responden pero tampoco se oponen.', created_at: t - 2 * DAY, pinned: 0 });
     s.posts.push({ id: ++s.seq, channel: 'cerrada', user_id: 2, title: 'Mi narrativa de 90 segundos', body: 'La subo para que me digan dónde suena a discurso y dónde suena a verdad.', created_at: t - DAY, pinned: 0 });
     s.comments.push({ id: ++s.seq, post_id: p2, user_id: 2, body: 'A mí me sirvió separarlos por interés en mi causa: los fríos con interés van primero.', created_at: t - DAY });
@@ -109,7 +109,7 @@
   const SAMPLE = {
     freya: (u, msg) => `Hola, ${u.name.split(' ')[0]}. Así trabajaría tu texto como **ficha de lectura**:\n\n### 3 ideas clave\n1. Identifica la tesis central en una frase.\n2. Separa los datos verificables de las opiniones del autor.\n3. Anota qué conflicto o tensión describe.\n\n### 1 aplicación práctica\n- Conecta la idea más fuerte con tu territorio: ¿a quién afecta y qué podrías proponer?\n\nPégame el texto completo y te devuelvo la ficha lista para tu diario político.`,
     nova: (u) => `Vamos con tu narrativa, ${u.name.split(' ')[0]}. Estructura de **90 segundos**:\n\n- **Origen (20 s):** un momento concreto, con lugar y personas.\n- **Tensión (35 s):** el problema que te interpela y por qué no puedes ignorarlo.\n- **Propuesta (35 s):** lo que tú puedes hacer y nadie más igual.\n\nEvita frases como «quiero un mejor país»: son ruido. Escríbeme tu borrador y lo afinamos línea por línea.`,
-    atenea: (u) => `Para decidir bien necesito tres datos: **tu territorio**, **tu fase actual** y **tu red activa** (cuántos aliados responden).\n\nMientras tanto, una regla del método: *no hay rutas incorrectas, hay rutas prematuras*. Si aún no tienes 30 aliados activos, prioriza Grow antes de cualquier candidatura.\n\n¿En qué país y municipio estás, ${u.name.split(' ')[0]}?`,
+    atenea: (u) => `Para decidir bien necesito tres datos: **tu territorio**, **tu fase actual** y **tu red activa** (cuántos aliados responden).\n\nMientras tanto, una regla del método: *no hay rutas incorrectas, hay rutas prematuras*. Si aún no tienes 30 aliados activos, prioriza la Fase 2 antes de cualquier candidatura.\n\n¿En qué país y municipio estás, ${u.name.split(' ')[0]}?`,
     charlie: () => `Propuesta de cronograma de **11 semanas**:\n\n1. Semanas 1–2: diagnóstico territorial y metas por barrio.\n2. Semanas 3–6: puerta a puerta, 3 jornadas semanales.\n3. Semanas 7–9: eventos de escucha y base de voluntarios.\n4. Semanas 10–11: cierre, movilización y cuidado del voto.\n\nDime tu presupuesto y tamaño de equipo y lo convierto en metas semanales medibles.`,
   };
   const SAMPLE_REVIEW = (name) => `### Lo que está bien\n- Partes de una experiencia concreta y verificable.\n- Tus valores aparecen ligados a un problema real.\n\n### Lo que falta o es débil\n- La consigna pide responder las cinco preguntas por separado; algunas quedan mezcladas.\n- Falta precisar a qué sector representas con datos (edad, territorio, ocupación).\n\n### Siguiente versión\n1. Reescribe cada respuesta en un párrafo propio.\n2. Añade una cifra o hecho que respalde tu visión.\n3. Léela en voz alta a alguien escéptico y anota sus dudas.\n\n### Veredicto\nCasi listo: la base es auténtica, falta estructura.\n\n*Revisión de ejemplo de la demo (${name}). En la plataforma real la escribe el asistente a partir de tu texto.*`;
@@ -134,7 +134,7 @@
     const re = new RegExp('^' + pattern.replace(/:(\w+)/g, (_, k) => { keys.push(k); return '([^/]+)'; }) + '$');
     routes.push({ method, re, keys, opts, fn });
   };
-  const needPlan = (u, min) => { if (!can(u, min)) fail(403, 'Tu plan actual no incluye esta función.', { minPlan: min }); };
+  const needPlan = (u, min) => { if (!can(u, min)) fail(403, 'Tu membresía actual no incluye esta función.', { minPlan: min }); };
 
   on('POST', '/auth/register', ({ body }) => {
     const name = clean(body.name, 80), email = clean(body.email, 120).toLowerCase(), password = String(body.password || '');
@@ -211,7 +211,7 @@
   function lessonAccess(user, id) {
     const l = getLesson(id);
     if (!l) fail(404, 'Lección no encontrada.');
-    if (!can(user, l.minPlan)) fail(403, 'Esta lección requiere un plan superior.', { minPlan: l.minPlan, lesson: { id: l.id, title: l.title, summary: l.summary } });
+    if (!can(user, l.minPlan)) fail(403, 'Esta lección requiere una membresía superior.', { minPlan: l.minPlan, lesson: { id: l.id, title: l.title, summary: l.summary } });
     return l;
   }
   on('GET', '/lessons/:id', { auth: true }, ({ user, params }) => {
@@ -250,11 +250,11 @@
   });
   on('POST', '/lessons/:id/review', { auth: true }, async ({ user, params }) => {
     const l = lessonAccess(user, params.id), rv = reviewerFor(user, l.phaseId);
-    if (!rv) fail(403, 'La revisión con IA está disponible desde el plan Starter.', { minPlan: 'starter' });
+    if (!rv) fail(403, 'La revisión con IA está disponible desde la membresía Starter.', { minPlan: 'starter' });
     const d = delOf(user.id, l.id);
     if (!d || d.body.trim().length < 40) fail(400, 'Guarda un entregable de al menos unas líneas antes de pedir revisión.');
     const limit = DAILY_CHAT_LIMIT[effectivePlan(user).plan] || 0;
-    if (usedToday(user.id) >= limit) fail(429, `Alcanzaste el límite diario de ${limit} mensajes de tu plan.`);
+    if (usedToday(user.id) >= limit) fail(429, `Alcanzaste el límite diario de ${limit} mensajes de tu membresía.`);
     await new Promise((r) => setTimeout(r, 1200));
     const t = now();
     S.chats.push({ user_id: user.id, assistant: 'review', role: 'user', content: l.id, created_at: t });
@@ -306,7 +306,7 @@
   on('GET', '/community/channels', { auth: true }, ({ user }) => ({ channels: CHANNELS.map((c) => ({ ...c, locked: !can(user, c.minPlan), posts: S.posts.filter((p) => p.channel === c.id).length })) }));
   on('GET', '/community/posts', { auth: true }, ({ user, query }) => {
     const ch = channelOf(query.get('channel')); if (!ch) fail(400, 'Canal no válido.');
-    if (!can(user, ch.minPlan)) fail(403, 'Este canal requiere un plan superior.', { minPlan: ch.minPlan });
+    if (!can(user, ch.minPlan)) fail(403, 'Este canal requiere una membresía superior.', { minPlan: ch.minPlan });
     const offset = Number(query.get('offset')) || 0;
     const list = S.posts.filter((p) => p.channel === ch.id).sort((a, b) => b.pinned - a.pinned || b.created_at - a.created_at);
     return { posts: list.slice(offset, offset + 20).map((p) => ({ id: p.id, title: p.title, body: p.body, created_at: p.created_at, pinned: p.pinned, author: author(p.user_id).name, author_role: author(p.user_id).role,
@@ -314,7 +314,7 @@
   });
   on('POST', '/community/posts', { auth: true }, ({ user, body }) => {
     const ch = channelOf(String(body.channel)); if (!ch) fail(400, 'Canal no válido.');
-    if (!can(user, ch.minPlan)) fail(403, 'Este canal requiere un plan superior.');
+    if (!can(user, ch.minPlan)) fail(403, 'Este canal requiere una membresía superior.');
     const title = clean(body.title, 140), text = clean(body.body, 4000);
     if (title.length < 3 || text.length < 3) fail(400, 'Escribe un título y un mensaje.');
     const id = nextId(); S.posts.push({ id, channel: ch.id, user_id: user.id, title, body: text, created_at: now(), pinned: 0 });
@@ -322,7 +322,7 @@
   });
   function postAccess(user, id) {
     const p = S.posts.find((x) => x.id === Number(id)); if (!p) fail(404, 'Publicación no encontrada.');
-    if (!can(user, channelOf(p.channel).minPlan)) fail(403, 'Este canal requiere un plan superior.');
+    if (!can(user, channelOf(p.channel).minPlan)) fail(403, 'Este canal requiere una membresía superior.');
     return p;
   }
   on('GET', '/community/posts/:id', { auth: true }, ({ user, params }) => {
@@ -357,7 +357,7 @@
     configured: true, dailyLimit: DAILY_CHAT_LIMIT[effectivePlan(user).plan] || 0, usedToday: usedToday(user.id),
     assistants: Object.values(ASSISTANTS).map((a) => ({ id: a.id, name: a.name, area: a.area, desc: a.desc, minPlan: a.minPlan, starters: a.starters, locked: !can(user, a.minPlan) })),
   }));
-  const assistantAccess = (user, id) => { const a = ASSISTANTS[id]; if (!a) fail(404, 'Asistente no encontrado.'); if (!can(user, a.minPlan)) fail(403, 'Este asistente requiere un plan superior.', { minPlan: a.minPlan }); return a; };
+  const assistantAccess = (user, id) => { const a = ASSISTANTS[id]; if (!a) fail(404, 'Asistente no encontrado.'); if (!can(user, a.minPlan)) fail(403, 'Este asistente requiere una membresía superior.', { minPlan: a.minPlan }); return a; };
   on('GET', '/assistants/:id/history', { auth: true }, ({ user, params }) => {
     const a = assistantAccess(user, params.id);
     return { messages: S.chats.filter((m) => m.user_id === user.id && m.assistant === a.id).slice(-40).map(({ role, content, created_at }) => ({ role, content, created_at })) };
@@ -367,7 +367,7 @@
     const a = assistantAccess(user, params.id), message = clean(body.message, 4000);
     if (!message) fail(400, 'Escribe un mensaje.');
     const limit = DAILY_CHAT_LIMIT[effectivePlan(user).plan] || 0;
-    if (usedToday(user.id) >= limit) fail(429, `Alcanzaste el límite diario de ${limit} mensajes de tu plan.`);
+    if (usedToday(user.id) >= limit) fail(429, `Alcanzaste el límite diario de ${limit} mensajes de tu membresía.`);
     const text = SAMPLE[a.id](user, message) + '\n\n*Respuesta de ejemplo: en esta demo los asistentes no están conectados al modelo de IA.*';
     const t = now();
     S.chats.push({ user_id: user.id, assistant: a.id, role: 'user', content: message, created_at: t }, { user_id: user.id, assistant: a.id, role: 'assistant', content: text, created_at: t + 1 });
@@ -456,9 +456,9 @@
     return el;
   }
   const style = document.createElement('style');
-  style.textContent = `.demo-bar{position:relative;z-index:30;display:flex;flex-wrap:wrap;gap:.4rem .6rem;align-items:center;justify-content:center;padding:.45rem 1rem;background:#ffd84d;color:#1f1b2e;font:600 13px/1.3 Poppins,system-ui,sans-serif}
+  style.textContent = `.demo-bar{position:relative;z-index:30;display:flex;flex-wrap:wrap;gap:.4rem .6rem;align-items:center;justify-content:center;padding:.45rem 1rem;background:#ffd84d;color:#1f1b2e;font:600 13px/1.3 Outfit,system-ui,sans-serif}
   .demo-bar button{border:1.5px solid #1f1b2e;background:#fff;color:#1f1b2e;border-radius:999px;padding:.25rem .8rem;font:inherit;cursor:pointer}
-  .demo-bar button:hover{background:#1f1b2e;color:#fff}.demo-bar+*{}.topbar{top:0}`;
+  .demo-bar button:hover{background:#1f1b2e;color:#fff}`;
   document.head.appendChild(style);
   const place = () => { document.querySelector('.demo-bar')?.remove(); document.body.prepend(bar()); };
   window.addEventListener('hashchange', () => setTimeout(place, 50));

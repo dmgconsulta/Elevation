@@ -3,13 +3,13 @@ const { p, h, ul, ol, quote, callout, table } = require('./h');
 module.exports = {
   id: 'grow',
   order: 2,
-  name: 'Grow',
-  title: 'Capital Social, Redes e Identidad Política',
+  name: 'Fase 2',
+  title: 'Capital social, redes e identidad política',
   subtitle: 'Construcción de red · Partido vs. independiente · Manejo de actores · Redes sociales',
   horizon: 'Año 2–4',
   minPlan: 'starter',
   intro:
-    'Si Start fue el trabajo interior, Grow es el momento de salir al mundo con esa base instalada. Cuatro pilares se desarrollan en paralelo: capital social y redes de influencia local, decisión sobre el vehículo político, manejo de actores hostiles y mediáticos, y redes sociales como amplificador territorial.',
+    'Si la Fase 1 fue el trabajo interior, la Fase 2 es el momento de salir al mundo con esa base instalada. Cuatro pilares se desarrollan en paralelo: capital social y redes de influencia local, decisión sobre el vehículo político, manejo de actores hostiles y mediáticos, y redes sociales como amplificador territorial.',
   premise: 'El capital social no se compra ni se improvisa en campaña: se construye lentamente, con presencia y utilidad reales.',
   milestones: [
     { hito: 'Mapa de actores completo', criterio: 'Documento con al menos 50 actores clasificados y estrategia por cuadrante' },
@@ -51,7 +51,7 @@ module.exports = {
         ]),
       ],
       checklist: [
-        'Confirmé que los hitos de Start están consolidados.',
+        'Confirmé que los hitos de la Fase 1 están consolidados.',
         'Definí el territorio donde voy a construir capital social.',
         'Asigné tiempo semanal fijo a presencia territorial.',
       ],
@@ -311,11 +311,11 @@ module.exports = {
     },
     {
       id: 'g6',
-      title: 'Cierre: hitos y errores críticos de Grow',
+      title: 'Cierre: hitos y errores críticos de la Fase 2',
       minutes: 6,
       summary: 'Verifica que los cuatro pilares estén consolidados antes de pasar a la primera apuesta pública.',
       blocks: [
-        p('La fase se considera completa cuando puedes demostrar resultados verificables en los cuatro pilares. No se avanza a Launch si alguno de los hitos no está consolidado. Consulta y marca los hitos en tu panel.'),
+        p('La fase se considera completa cuando puedes demostrar resultados verificables en los cuatro pilares. No se avanza a la Fase 3 si alguno de los hitos no está consolidado. Consulta y marca los hitos en tu panel.'),
         callout('Los 6 errores más frecuentes', [
           'Networking de tarjeta.',
           'Elegir partido por oportunismo.',
@@ -331,8 +331,8 @@ module.exports = {
         'Identifiqué el hito más débil y definí un plan para consolidarlo.',
       ],
       deliverable: {
-        title: 'Autoevaluación de hitos de Grow',
-        prompt: 'Para cada hito indica estado y evidencia. Señala qué pilar es tu punto más débil y cómo lo reforzarás antes de pasar a Launch.',
+        title: 'Autoevaluación de hitos de la Fase 2',
+        prompt: 'Para cada hito indica estado y evidencia. Señala qué pilar es tu punto más débil y cómo lo reforzarás antes de pasar a la Fase 3.',
       },
     },
   ],

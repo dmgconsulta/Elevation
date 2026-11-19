@@ -3,8 +3,8 @@ const { p, h, ul, ol, quote, callout, table } = require('./h');
 module.exports = {
   id: 'start',
   order: 1,
-  name: 'Start',
-  title: 'Fundamentos del Candidato',
+  name: 'Fase 1',
+  title: 'Fundamentos del candidato',
   subtitle: 'Identidad · Propósito · Formación base',
   horizon: 'Año 1–2',
   minPlan: 'starter',
@@ -160,7 +160,7 @@ module.exports = {
           ['Urgencia de tiempo', '¿Necesito infraestructura ya o puedo construirla gradualmente?'],
           ['Compatibilidad ideológica', '¿Existe un partido cuya plataforma es genuinamente mía?'],
         ]),
-        p('Esta decisión se profundiza en la fase Grow.'),
+        p('Esta decisión se profundiza en la Fase 2.'),
       ],
       checklist: [
         'Apliqué los cuatro criterios a mi posición ideológica actual.',
@@ -293,7 +293,7 @@ module.exports = {
           'Apresurarse a la candidatura.',
         ]),
         quote('La política es el arte de lo posible. Pero lo posible lo define quién eres, no quién quieres aparentar ser.'),
-        p('Revisa los hitos de completitud de la fase en tu panel. Cuando todos estén cumplidos, avanza a Grow: Capital social, redes e identidad política.'),
+        p('Revisa los hitos de completitud de la fase en tu panel. Cuando todos estén cumplidos, avanza a la Fase 2: Capital social, redes e identidad política.'),
       ],
       checklist: [
         'Inicié mi diario político con la primera entrada semanal.',

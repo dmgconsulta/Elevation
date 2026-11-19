@@ -148,32 +148,40 @@
     const logout = async (e) => { e.preventDefault(); await api('/auth/logout', { method: 'POST' }).catch(() => {}); state.user = null; state.catalog = null; go('/'); };
     const nav = h('nav', { class: 'nav', id: 'main-nav', 'aria-label': 'Principal' },
       u ? [
-        link('/panel', 'Panel', 'panel'), link('/ruta', 'Ruta', 'ruta'), link('/asistentes', 'Asistentes', 'asistentes'),
-        link('/comunidad', 'Comunidad', 'comunidad'), link('/agenda', 'Agenda', 'agenda'), link('/kpis', 'KPIs', 'kpis'),
+        link('/panel', 'Mi ruta', 'panel'), link('/ruta', 'Mi carrera política', 'ruta'), link('/asistentes', 'Asistentes', 'asistentes'),
+        link('/comunidad', 'Mi red', 'comunidad'), link('/agenda', 'Agenda', 'agenda'), link('/kpis', 'Mis métricas', 'kpis'),
         h('details', { class: 'user-menu' },
-          h('summary', { 'aria-label': 'Menú de cuenta' }, h('span', { class: 'avatar', 'aria-hidden': 'true' }, u.name.trim()[0].toUpperCase()), h('span', { class: 'plan-pill' }, (u.trial ? 'Trial ' : '') + PLAN_LABEL[u.effectivePlan])),
+          h('summary', { 'aria-label': 'Menú de cuenta' }, h('span', { class: 'avatar', 'aria-hidden': 'true' }, u.name.trim()[0].toUpperCase()), h('span', { class: 'plan-pill' }, (u.trial ? 'Prueba ' : '') + PLAN_LABEL[u.effectivePlan])),
           h('div', { class: 'menu' },
             h('div', { class: 'small muted', style: 'padding:.3rem .8rem .5rem' }, u.email),
             link('/entregables', 'Mis entregables', 'entregables'),
             link('/cuenta', 'Mi cuenta', 'cuenta'),
-            link('/planes', 'Planes', 'planes'),
+            link('/planes', 'Mi membresía', 'planes'),
             u.role === 'admin' ? link('/admin', 'Administración', 'admin') : null,
             h('a', { href: '#/', onclick: logout }, 'Salir'))),
       ] : [
-        h('a', { href: SITE_HOME }, 'Inicio'), link('/planes', 'Planes', 'planes'), link('/login', 'Entrar', 'login'),
-        h('a', { href: '#/registro', class: 'btn primary small' }, 'Empieza gratis'),
+        h('a', { href: SITE_HOME }, 'Inicio'), link('/planes', 'Membresías', 'planes'), link('/login', 'Entrar', 'login'),
+        h('a', { href: '#/registro', class: 'btn primary small' }, 'Empezar gratis'),
       ]);
     return h('header', { class: 'topbar' }, h('div', { class: 'container' },
-      h('a', { href: u ? '#/panel' : SITE_HOME, class: 'brand', 'aria-label': 'Elevation, inicio' }, h('img', { src: 'img/logo-wordmark.png', alt: 'Elevation', width: 204, height: 26, class: 'logo-light' }), h('img', { src: 'img/logo-wordmark-dark.png', alt: '', width: 204, height: 26, class: 'logo-dark' })),
+      logo({ href: u ? '#/panel' : SITE_HOME }),
       h('button', { class: 'menu-btn', 'aria-label': 'Abrir menú', 'aria-controls': 'main-nav', onclick: (e) => { const o = nav.classList.toggle('open'); e.currentTarget.setAttribute('aria-expanded', o); } }, '☰'),
       nav));
   }
 
+  // Logotipo de texto con el lazo «io», igual que en el sitio.
+  function logo(attrs) {
+    const io = s('svg', { viewBox: '0 0 66 40', 'aria-hidden': 'true' },
+      s('circle', { cx: 8, cy: 5.5, r: 5.5, stroke: 'none' }),
+      s('path', { d: 'M8 18V26C8 36 20 38 27 31L37 21C44 14 58 16 58 26C58 36 44 38 37 31L31.5 25.5', fill: 'none', 'stroke-width': 9.5, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }));
+    return h('a', { class: 'brand', 'aria-label': 'Elevation, inicio', ...attrs }, 'ELEVAT', io, 'N');
+  }
+
   function footer() {
     return h('footer', { class: 'footer' }, h('div', { class: 'container row between' },
-      h('div', { class: 'tag' }, 'We elevate ', h('b', {}, 'nations')),
+      h('div', { class: 'row', style: 'gap:1rem' }, logo({ href: SITE_HOME }), h('span', { class: 'tag' }, h('em', {}, 'We elevate'), ' nations')),
       h('div', { class: 'row', style: 'gap:.8rem' },
-        h('span', {}, 'Elevation · Formación política para Latinoamérica'),
+        h('span', {}, 'La red de consultores y políticos de América Latina'),
         h('button', { class: 'chip', onclick: toggleTheme, 'aria-label': 'Cambiar tema claro u oscuro' }, '◐ Tema'))));
   }
 
@@ -181,7 +189,16 @@
     const u = state.user;
     if (!u || !u.trial) return null;
     const days = Math.max(0, Math.ceil((u.trialEndsAt - Date.now()) / 86400000));
-    return h('div', { class: 'trial-banner' }, `Tu prueba gratuita de Starter termina en ${days} ${days === 1 ? 'día' : 'días'}. `, h('a', { href: '#/planes' }, 'Elige tu plan'));
+    return h('div', { class: 'trial-banner' }, `Te ${days === 1 ? 'queda 1 día' : `quedan ${days} días`} de prueba de Starter. `, h('a', { href: '#/planes' }, 'Elige tu membresía'));
+  }
+
+  // Encabezado de página como en el sitio: etiqueta amarilla, titular a dos voces y bajada.
+  // `title` es un arreglo de piezas: texto normal, {s: 'serif itálica'} o {b: 'negrita'}.
+  function pageHead(label, title, lead, extra) {
+    return h('header', { class: 'ph' },
+      h('div', { class: 'ph-top' }, h('span', { class: 'ttl' }, label), extra || null),
+      h('h1', {}, title.map((t) => (typeof t === 'string' ? t : t.s ? h('em', { class: 's' }, t.s) : h('strong', {}, t.b)))),
+      lead ? h('p', { class: 'big' }, lead) : null);
   }
 
   function page(active, ...content) {
@@ -192,13 +209,13 @@
     window.scrollTo(0, 0);
   }
 
-  function setTitle(t) { document.title = t ? `${t} · Elevation` : 'Elevation · Escuela de estrategia política'; }
+  function setTitle(t) { document.title = t ? `${t} · Elevation` : 'Elevation · We elevate nations'; }
 
   const upsell = (min, what) => h('div', { class: 'card center upsell' },
-    h('span', { class: 'badge lock' }, `Requiere ${PLAN_LABEL[min]}`),
+    h('span', { class: 'badge lock' }, `Membresía ${PLAN_LABEL[min]}`),
     h('h2', { class: 'mt-s' }, what),
-    h('p', { class: 'muted' }, `Disponible desde el plan ${PLAN_LABEL[min]}.`),
-    h('a', { class: 'btn primary', href: '#/planes' }, 'Ver planes'));
+    h('p', { class: 'muted' }, `Se desbloquea con la membresía ${PLAN_LABEL[min]}.`),
+    h('a', { class: 'btn primary', href: '#/planes' }, 'Ver membresías'));
 
   // ---------- Bloques de lección ----------
   function renderBlock(b) {
@@ -237,14 +254,6 @@
   const pct = (done, total) => (total ? Math.round((done / total) * 100) : 0);
   const progressBar = (done, total, label) => h('div', { class: 'bar', role: 'progressbar', 'aria-label': label || 'Progreso', 'aria-valuenow': pct(done, total), 'aria-valuemin': 0, 'aria-valuemax': 100 },
     h('span', { style: `width:${pct(done, total)}%` }));
-
-  function ring(value, size = 120) {
-    const r = size / 2 - 9, c = 2 * Math.PI * r;
-    return s('svg', { width: size, height: size, viewBox: `0 0 ${size} ${size}`, class: 'ring', role: 'img', 'aria-label': `${value}% completado` },
-      s('circle', { cx: size / 2, cy: size / 2, r, class: 'ring-bg' }),
-      value > 0 ? s('circle', { cx: size / 2, cy: size / 2, r, class: 'ring-fg', 'stroke-dasharray': `${(c * value) / 100} ${c}`, transform: `rotate(-90 ${size / 2} ${size / 2})` }) : null,
-      (() => { const t = s('text', { x: '50%', y: '50%', 'dominant-baseline': 'central', 'text-anchor': 'middle', class: 'ring-txt' }); t.textContent = `${value}%`; return t; })());
-  }
 
   function sparkline(series, w = 160, hgt = 40) {
     const max = Math.max(1, ...series);
@@ -289,13 +298,14 @@
       isReg ? h('div', { class: 'field' }, h('label', { for: 'country' }, 'País'), countryInput('country', pre('country', 60))) : null,
       isReg ? h('div', { class: 'field' }, h('label', { for: 'segment' }, '¿Cuál te describe mejor?'), segmentSelect('segment', '')) : null,
       err,
-      h('button', { class: 'btn primary', type: 'submit', style: 'width:100%' }, isReg ? 'Crear cuenta' : 'Entrar'));
+      h('button', { class: 'btn primary', type: 'submit', style: 'width:100%' }, isReg ? 'Crear mi cuenta' : 'Entrar'));
     page(mode,
       h('div', { class: 'auth-wrap' }, h('div', { class: 'auth-card' },
-        h('h2', {}, isReg ? 'Crea tu cuenta' : 'Bienvenido de vuelta'),
-        isReg ? h('p', { class: 'muted small' }, 'Incluye 3 días de Starter sin costo. Sin tarjeta.') : null,
+        h('span', { class: 'ttl' }, isReg ? 'Empezar gratis' : 'Mi membresía'),
+        h('h2', {}, isReg ? ['Empieza tu ', h('strong', {}, 'carrera política.')] : ['Qué bueno ', h('strong', {}, 'verte de nuevo.')]),
+        h('p', { class: 'muted' }, isReg ? '3 días de Starter sin costo. Sin tarjeta.' : 'Entra y sigue donde quedaste.'),
         form,
-        h('p', { class: 'small center mt-s' }, isReg ? ['¿Ya tienes cuenta? ', h('a', { href: '#/login' }, 'Entra')] : ['¿Primera vez? ', h('a', { href: '#/registro' }, 'Crea tu cuenta')])
+        h('p', { class: 'small center mt-s' }, isReg ? ['¿Ya tienes cuenta? ', h('a', { href: '#/login' }, 'Entra')] : ['¿Primera vez? ', h('a', { href: '#/registro' }, 'Empieza gratis')])
       )));
   }
 
@@ -311,7 +321,7 @@
   }
 
   async function viewPlans() {
-    setTitle('Planes');
+    setTitle('Membresías');
     const pl = state.plans || await api('/plans');
     state.plans = pl;
     let annual = false;
@@ -327,12 +337,12 @@
           const price = annual ? p.annual : p.monthly;
           const isCur = cur === p.id;
           let btn;
-          if (!state.user) btn = h('a', { href: '#/registro', class: 'btn ' + (p.id === 'pro' ? 'primary' : 'ghost') }, p.id === 'free' ? 'Empezar' : 'Probar 3 días');
-          else if (isCur) btn = h('button', { class: 'btn ghost', disabled: true }, 'Tu plan actual');
+          if (!state.user) btn = h('a', { href: '#/registro', class: 'btn ' + (p.id === 'pro' ? 'primary' : 'ghost') }, p.id === 'free' ? 'Empezar gratis' : 'Probar 3 días');
+          else if (isCur) btn = h('button', { class: 'btn ghost', disabled: true }, 'Tu membresía actual');
           else btn = h('button', { class: 'btn ' + (p.id === 'pro' ? 'primary' : 'ghost'), onclick: async () => {
             if (pl.paymentsMode !== 'demo') return toast('Los pagos aún no están conectados.');
             if (!confirm(`¿Cambiar a ${p.label}? (modo demostración: sin cobro)`)) return;
-            try { const r = await api('/billing/change', { method: 'POST', body: { plan: p.id, billing: annual ? 'annual' : 'monthly' } }); state.user = r.user; state.catalog = null; toast(`Plan ${p.label} activado.`); page('planes', shell); draw(); }
+            try { const r = await api('/billing/change', { method: 'POST', body: { plan: p.id, billing: annual ? 'annual' : 'monthly' } }); state.user = r.user; state.catalog = null; toast(`Membresía ${p.label} activada.`); page('planes', shell); draw(); }
             catch (ex) { toast(ex.message); }
           } }, RANK[p.id] > RANK[cur] ? `Subir a ${p.label}` : `Cambiar a ${p.label}`);
           return h('div', { class: 'card price-card' + (p.id === 'pro' ? ' featured' : '') },
@@ -344,12 +354,11 @@
             h('ul', {}, p.features.map((f) => h('li', {}, f))),
             btn);
         })),
-        pl.paymentsMode === 'demo' ? h('p', { class: 'small muted center mt' }, 'Modo demostración: el cambio de plan es inmediato y no genera cobros. Conecta una pasarela de pago antes de abrir al público.') : null);
+        pl.paymentsMode === 'demo' ? h('p', { class: 'small muted center mt' }, 'Modo demostración: el cambio de membresía es inmediato y no genera cobros. Conecta una pasarela de pago antes de abrir al público.') : null);
     };
     draw();
     const shell = h('section', { class: 'section' }, h('div', { class: 'container' },
-      h('h1', { class: 'center' }, 'Planes'),
-      h('p', { class: 'center muted mb' }, `Escala a medida que crece tu carrera. Los nuevos miembros reciben ${pl.trialDays} días de Starter sin costo.`),
+      pageHead('Mi membresía', ['Elige cómo ', { b: 'elevar tu carrera.' }], `Crece a tu ritmo: cambia de membresía cuando tu carrera lo pida. Si eres nuevo, tienes ${pl.trialDays} días de Starter sin costo.`),
       root));
     page('planes', shell);
   }
@@ -360,60 +369,63 @@
     return null;
   }
 
+  // Separa «Módulo 2: Construcción…» en etiqueta («Módulo 2») y título.
+  const splitTitle = (t) => { const m = String(t).match(/^([^:]{2,40}):\s+(.+)$/); return m ? { tag: m[1], title: m[2][0].toUpperCase() + m[2].slice(1) } : { tag: null, title: t }; };
+
   async function viewDashboard() {
-    setTitle('Panel');
+    setTitle('Mi ruta');
     page('panel', loading());
     const [, ev] = await Promise.all([loadCatalog(), api('/events').catch(() => ({ events: [] }))]);
     const u = state.user, cat = state.catalog;
     const totals = cat.reduce((a, p) => ({ d: a.d + p.progress.done, t: a.t + p.progress.total }), { d: 0, t: 0 });
-    const msTotals = cat.reduce((a, p) => ({ d: a.d + p.milestones.filter((m) => m.done).length, t: a.t + p.milestones.length }), { d: 0, t: 0 });
     const delivs = cat.reduce((a, p) => a + p.lessons.filter((l) => l.hasDeliverable).length, 0);
     const nx = nextLesson();
+    const cur = (nx && nx.ph) || cat.find((p) => p.progress.done < p.progress.total) || cat[cat.length - 1];
+    const nextMs = cur.milestones.find((m) => !m.done);
     const upcoming = ev.events.slice(0, 3);
+    const nt = nx ? splitTitle(nx.l.title) : null;
     page('panel', h('div', { class: 'container section' },
-      h('h1', {}, `Hola, ${u.name.split(' ')[0]}`),
-      h('p', { class: 'muted' }, `Plan ${PLAN_LABEL[u.effectivePlan]}${u.trial ? ' (prueba)' : ''} · ${totals.d} de ${totals.t} lecciones completadas`),
-      !u.country || !u.segment ? h('div', { class: 'callout' }, h('strong', { class: 't' }, 'Personaliza tu experiencia'),
-        h('p', {}, 'Indica tu país y perfil para que los asistentes adapten sus respuestas. ', h('a', { href: '#/cuenta' }, 'Completar perfil'))) : null,
+      pageHead('Mi ruta', [`Hola, ${u.name.split(' ')[0]}. `, { s: 'Sigamos.' }],
+        `Membresía ${PLAN_LABEL[u.effectivePlan]}${u.trial ? ' (prueba)' : ''} · ${totals.d} de ${totals.t} lecciones · ${delivs} ${delivs === 1 ? 'entregable' : 'entregables'}`),
+      !u.country || !u.segment ? h('div', { class: 'callout' }, h('strong', { class: 't' }, 'Cuéntanos de ti'),
+        h('p', {}, 'Dinos tu país y tu perfil: los asistentes te responderán pensando en tu realidad. ', h('a', { href: '#/cuenta' }, 'Completar mi perfil'))) : null,
       h('div', { class: 'grid dash mt' },
-        h('div', { class: 'card continue' },
-          h('h3', {}, 'Continúa donde lo dejaste'),
-          nx ? [h('p', { class: 'small muted' }, `${nx.ph.name} · lección ${nx.l.order} · ${nx.l.minutes} min`), h('p', {}, h('strong', {}, nx.l.title)), h('p', { class: 'small muted' }, nx.l.summary),
-            h('a', { class: 'btn primary', href: '#/leccion/' + nx.l.id }, 'Continuar')]
-            : [h('p', {}, 'Completaste todas las lecciones disponibles en tu plan.'), h('a', { class: 'btn ghost', href: '#/planes' }, 'Ver planes')]),
-        h('div', { class: 'card center' },
-          h('h3', {}, 'Tu avance total'),
-          ring(pct(totals.d, totals.t)),
-          h('div', { class: 'mini-stats' },
-            h('div', {}, h('strong', {}, msTotals.d), h('span', {}, 'hitos')),
-            h('div', {}, h('strong', {}, delivs), h('span', {}, 'entregables'))))),
-      h('h2', { class: 'mt' }, 'Tus fases'),
-      h('div', { class: 'grid c4' }, cat.map((p) => {
-        const ms = p.milestones.filter((m) => m.done).length;
-        return h('a', { href: '#/fase/' + p.id, class: 'card lift plain' },
-          h('div', { class: 'phase-num' }, `Fase ${p.order} · ${p.horizon}`),
-          h('h3', {}, p.name),
-          p.locked ? h('span', { class: 'badge lock' }, `Requiere ${PLAN_LABEL[p.minPlan]}`) : (p.progress.done === p.progress.total ? h('span', { class: 'badge ok' }, 'Completada') : null),
-          h('p', { class: 'small muted mt-s' }, `${p.progress.done}/${p.progress.total} lecciones · ${ms}/${p.milestones.length} hitos`),
-          progressBar(p.progress.done, p.progress.total, `Progreso de ${p.name}`));
-      })),
-      h('div', { class: 'grid c2 mt', style: 'align-items:start' },
-        h('div', { class: 'card' },
-          h('div', { class: 'row between' }, h('h3', { style: 'margin:0' }, 'Próximos eventos'), h('a', { href: '#/agenda', class: 'small' }, 'Ver agenda')),
-          upcoming.length ? h('ul', { class: 'event-mini' }, upcoming.map((e) => h('li', {},
-            h('span', { class: 'when' }, fmtTime(e.startsAt)), h('span', { class: 'grow' }, h('strong', {}, e.title), h('br'), h('span', { class: 'small muted' }, e.kindLabel)),
-            e.locked ? h('span', { class: 'badge lock' }, PLAN_LABEL[e.minPlan]) : null)))
-            : h('p', { class: 'small muted mt-s' }, 'No hay eventos programados por ahora.')),
-        h('div', { class: 'grid c2', style: 'gap:1rem' },
-          [['#/asistentes', 'Asistentes IA', 'Nova, Atenea, Freya y Charlie.'], ['#/kpis', 'Dashboard KPI', hasPlan('pro') ? 'Registra tu avance medible.' : 'Disponible en Pro.'],
-           ['#/comunidad', 'Comunidad', 'Pregunta y conecta con pares.'], ['#/entregables', 'Mis entregables', 'Tus documentos, exportables.']]
-            .map(([href, t, d]) => h('a', { href, class: 'card lift plain' }, h('h3', {}, t), h('p', { class: 'small muted', style: 'margin:0' }, d)))))));
+        h('div', { class: 'stack-col' },
+          h('div', { class: 'card continue' },
+            h('span', { class: 'chip-l' }, 'Continúa donde quedaste'),
+            nx ? [h('h2', {}, nt.title),
+              h('p', { class: 'on-dark' }, nx.l.summary),
+              progressBar(nx.ph.progress.done, nx.ph.progress.total, `Avance de la ${nx.ph.name}`),
+              h('div', { class: 'row between' }, h('small', { class: 'on-dark' }, `${nx.ph.name} · ${nt.tag || 'lección ' + nx.l.order} · ${nx.l.minutes} min`),
+                h('a', { class: 'btn primary', href: '#/leccion/' + nx.l.id }, 'Continuar'))]
+              : [h('h2', {}, 'Completaste todo lo que incluye tu membresía.'), h('a', { class: 'btn primary', href: '#/planes' }, 'Ver membresías')]),
+          h('div', { class: 'card' },
+            h('div', { class: 'row between' }, h('h3', { style: 'margin:0' }, 'Lo que viene en vivo'), h('a', { href: '#/agenda', class: 'small' }, 'Ver agenda')),
+            upcoming.length ? h('ul', { class: 'event-mini' }, upcoming.map((e) => h('li', {},
+              h('span', { class: 'when' }, fmtTime(e.startsAt)), h('span', { class: 'grow' }, h('strong', {}, e.title), h('br'), h('span', { class: 'small muted' }, e.kindLabel)),
+              e.locked ? h('span', { class: 'badge lock' }, PLAN_LABEL[e.minPlan]) : null)))
+              : h('p', { class: 'small muted mt-s' }, 'No hay eventos programados por ahora.'))),
+        h('div', { class: 'card plan10' },
+          h('h3', {}, 'Tu plan de diez años'),
+          cat.map((p) => h('a', { href: '#/fase/' + p.id, class: 'prow' + (p.locked ? ' lock' : '') },
+            h('span', {}, h('b', {}, p.order), `${p.title}`),
+            h('small', {}, p.locked ? `Membresía ${PLAN_LABEL[p.minPlan]}` : p.progress.done ? `${pct(p.progress.done, p.progress.total)}%` : p.horizon),
+            progressBar(p.progress.done, p.progress.total, `Avance de la ${p.name}`))),
+          h('hr'),
+          nextMs ? [h('p', { class: 'eyebrow' }, 'Próximo hito'), h('p', {}, h('strong', {}, nextMs.hito), ': ', nextMs.criterio.charAt(0).toLowerCase() + nextMs.criterio.slice(1), '.')] : null,
+          h('p', { class: 'eyebrow mt-s' }, 'Recordatorio de la fase'),
+          h('p', { class: 'serif-q' }, cur.premise))),
+      h('div', { class: 'grid c4 mt' },
+        [['#/asistentes', 'Asistentes', 'Nova, Atenea, Freya y Charlie conocen tu fase.'], ['#/kpis', 'Mis métricas', hasPlan('pro') ? 'Decide con datos, no con intuición.' : 'Se desbloquea con Pro.'],
+         ['#/comunidad', 'Mi red', 'Contacta con quienes piensan como tú.'], ['#/entregables', 'Mis entregables', 'Todo lo que ya construiste.']]
+          .map(([href, t, d]) => h('a', { href, class: 'card lift plain' }, h('h3', {}, t), h('p', { class: 'small muted', style: 'margin:0' }, d))))));
   }
 
   const lessonRow = (l) => {
     const dot = h('span', { class: 'dot' + (l.done ? ' done' : '') }, l.done ? '✓' : l.order);
-    const body = [dot, h('span', { class: 'grow' }, h('strong', {}, l.title), h('br'), h('span', { class: 'small muted' }, `${l.minutes} min`, l.hasDeliverable ? ' · entregable guardado' : '')),
-      l.locked ? h('span', { class: 'badge lock' }, `Requiere ${PLAN_LABEL[l.minPlan]}`) : (l.minPlan === 'free' ? h('span', { class: 'badge ok' }, 'Gratis') : null)];
+    const t = splitTitle(l.title);
+    const body = [dot, h('span', { class: 'grow' }, t.tag ? h('span', { class: 'small muted' }, t.tag, h('br')) : null, h('strong', {}, t.title), h('br'), h('span', { class: 'small muted' }, `${l.minutes} min`, l.hasDeliverable ? ' · entregable guardado' : '')),
+      l.locked ? h('span', { class: 'badge lock' }, `Membresía ${PLAN_LABEL[l.minPlan]}`) : (l.minPlan === 'free' ? h('span', { class: 'badge ok' }, 'Gratis') : null)];
     return h('li', {}, l.locked ? h('a', { href: '#/planes' }, body) : h('a', { href: '#/leccion/' + l.id }, body));
   };
 
@@ -436,17 +448,18 @@
   }
 
   async function viewRoute() {
-    setTitle('Tu ruta');
+    setTitle('Mi carrera política');
     page('ruta', loading());
     await loadCatalog();
     page('ruta', h('div', { class: 'container section' },
-      h('h1', {}, 'Tu ruta'),
-      h('p', { class: 'muted' }, 'Start → Grow → Launch → Scale. Avanza en orden: cada fase se apoya en la anterior.'),
+      pageHead('Mi carrera política', ['Construye tu ', { b: 'carrera política.' }], '10 años de acompañamiento en 4 fases online. Avanza en orden: cada fase se apoya en la anterior.'),
+      h('div', { class: 'track' }, state.catalog.map((p) => h('a', { href: '#/fase/' + p.id, class: 'track-b' + (p.locked ? ' lock' : '') },
+        h('b', {}, p.order), h('span', {}, h('strong', {}, p.title), h('small', {}, p.horizon.replace('Año', 'Años'), p.locked ? ` · ${PLAN_LABEL[p.minPlan]}` : ` · ${p.progress.done}/${p.progress.total}`))))),
       searchBox(),
       state.catalog.map((p) => h('div', { class: 'card mt' },
         h('div', { class: 'row between' },
-          h('div', {}, h('div', { class: 'phase-num' }, `Fase ${p.order} · ${p.horizon}`), h('h2', {}, `${p.name}: ${p.title}`)),
-          h('a', { href: '#/fase/' + p.id, class: 'btn ghost small' }, 'Ver fase')),
+          h('div', {}, h('div', { class: 'phase-num' }, `Fase ${p.order} · ${p.horizon.replace('Año', 'Años')}`), h('h2', {}, p.title)),
+          h('a', { href: '#/fase/' + p.id, class: 'btn ghost small' }, 'Ver la fase')),
         progressBar(p.progress.done, p.progress.total, `Progreso de ${p.name}`),
         h('ul', { class: 'lesson-list mt-s' }, p.lessons.map(lessonRow))))));
   }
@@ -456,22 +469,19 @@
     await loadCatalog();
     const p = state.catalog.find((x) => x.id === id);
     if (!p) return viewNotFound();
-    setTitle(p.name);
+    setTitle(`${p.name} · ${p.title}`);
     const msCount = h('span', {}, `${p.milestones.filter((m) => m.done).length}/${p.milestones.length}`);
     page('ruta', h('div', { class: 'container section' },
-      h('div', { class: 'crumbs' }, h('a', { href: '#/ruta' }, 'Ruta'), ` › ${p.name}`),
-      h('div', { class: 'phase-num' }, `Fase ${p.order} · ${p.horizon}`),
-      h('h1', {}, `${p.name}: ${p.title}`),
-      h('p', { class: 'muted' }, p.subtitle),
-      h('div', { class: 'narrow', style: 'margin:0' }, h('p', { class: 'intro' }, p.intro)),
-      h('div', { class: 'callout' }, h('strong', { class: 't' }, 'Premisa de la fase'), h('p', {}, p.premise)),
-      h('div', { class: 'grid c2' },
+      h('div', { class: 'crumbs' }, h('a', { href: '#/ruta' }, 'Mi carrera política'), ` › ${p.name}`),
+      pageHead(`${p.name} · ${p.horizon.replace('Año', 'Años')}`, [p.title + '.'], p.subtitle),
+      h('div', { class: 'phase-intro' }, h('p', { class: 'intro' }, p.intro), h('blockquote', { class: 'quote' }, p.premise)),
+      h('div', { class: 'grid c2 mt' },
         h('div', { class: 'card' },
           h('h3', {}, 'Lecciones'),
           progressBar(p.progress.done, p.progress.total, `Progreso de ${p.name}`),
           h('ul', { class: 'lesson-list mt-s' }, p.lessons.map(lessonRow))),
         h('div', { class: 'card' },
-          h('div', { class: 'row between' }, h('h3', { style: 'margin:0' }, 'Hitos de completitud'), h('span', { class: 'badge blue' }, msCount)),
+          h('div', { class: 'row between' }, h('h3', { style: 'margin:0' }, 'Hitos para cerrar la fase'), h('span', { class: 'badge blue' }, msCount)),
           h('p', { class: 'small muted mt-s' }, 'Márcalos solo cuando puedas demostrarlos con evidencia.'),
           h('ul', { class: 'checklist' }, p.milestones.map((m) => h('li', {},
             h('label', {}, h('input', {
@@ -498,21 +508,24 @@
         const l = ex.data.lesson || {};
         setTitle(l.title || 'Lección bloqueada');
         return page('ruta', h('div', { class: 'narrow section center' },
-          h('span', { class: 'badge lock' }, `Requiere ${PLAN_LABEL[ex.data.minPlan]}`),
-          h('h1', { class: 'mt-s' }, l.title || 'Lección bloqueada'),
+          h('span', { class: 'badge lock' }, `Membresía ${PLAN_LABEL[ex.data.minPlan]}`),
+          h('h1', { class: 'mt-s' }, splitTitle(l.title || 'Lección bloqueada').title),
           h('p', { class: 'muted' }, l.summary || ''),
-          h('a', { class: 'btn primary', href: '#/planes' }, 'Ver planes')));
+          h('a', { class: 'btn primary', href: '#/planes' }, 'Ver membresías')));
       }
       if (ex.status === 404) return viewNotFound();
       throw ex;
     }
     const { lesson: l, phase, state: st, prev, next, reviewer, order } = data;
-    setTitle(l.title);
+    if (!state.catalog) await loadCatalog().catch(() => {});
+    const phCat = state.catalog && state.catalog.find((p) => p.id === phase.id);
+    const lt = splitTitle(l.title);
+    setTitle(lt.title);
     const checked = new Set(st.checks);
 
     // Entregable con guardado automático.
     const status = h('span', { class: 'saved', 'aria-live': 'polite' }, st.deliverable ? `Guardado ${fmtTime(st.deliverable.updatedAt)}` : '');
-    const ta = h('textarea', { id: 'deliv', placeholder: 'Escribe aquí tu entregable… Se guarda solo mientras escribes.', maxlength: 20000, 'aria-label': l.deliverable.title, rows: 10 }, st.deliverable ? st.deliverable.body : '');
+    const ta = h('textarea', { id: 'deliv', placeholder: 'Escribe aquí. Se guarda solo mientras escribes.', maxlength: 20000, 'aria-label': l.deliverable.title, rows: 10 }, st.deliverable ? st.deliverable.body : '');
     const wc = h('span', { class: 'small muted' }, `${words(ta.value)} palabras`);
     let saved = ta.value, saveTimer, saving = null;
     const save = async () => {
@@ -547,7 +560,7 @@
       : h('a', { class: 'btn ghost small', href: '#/planes' }, '✦ Revisión con IA (Starter)');
 
     let doneNow = st.done;
-    const doneLabel = () => (doneNow ? '✓ Completada (clic para deshacer)' : 'Marcar como completada');
+    const doneLabel = () => (doneNow ? '✓ Lección completada (clic para deshacer)' : 'Marcar como completada');
     const afterDone = h('div');
     const doneBtn = h('button', { class: 'btn ' + (doneNow ? 'ghost' : 'primary'), onclick: async () => {
       doneNow = !doneNow;
@@ -555,16 +568,25 @@
         await api(`/lessons/${l.id}/complete`, { method: 'POST', body: { done: doneNow } });
         state.catalog = null; doneBtn.className = 'btn ' + (doneNow ? 'ghost' : 'primary'); doneBtn.textContent = doneLabel();
         toast(doneNow ? 'Lección completada.' : 'Marca retirada.');
-        afterDone.replaceChildren(doneNow && next && !next.locked ? h('div', { class: 'callout ok mt-s' }, h('strong', { class: 't' }, '¡Bien hecho!'), h('p', {}, 'Sigue con ', h('a', { href: '#/leccion/' + next.id }, next.title), '.')) : '');
+        afterDone.replaceChildren(doneNow && next && !next.locked ? h('div', { class: 'callout ok mt-s' }, h('strong', { class: 't' }, 'Un paso más en tu carrera'), h('p', {}, 'Sigue con ', h('a', { href: '#/leccion/' + next.id }, splitTitle(next.title).title), '.')) : '');
       } catch (ex) { doneNow = !doneNow; toast(ex.message); }
     } }, doneLabel());
 
-    const navBtn = (x, dir) => x ? (x.locked ? h('a', { class: 'btn ghost', href: '#/planes' }, `${dir === 'p' ? 'Anterior' : 'Siguiente'} (requiere plan)`) : h('a', { class: 'btn ghost', href: '#/leccion/' + x.id, rel: dir === 'p' ? 'prev' : 'next' }, `${dir === 'p' ? '← ' : ''}${x.title}${dir === 'n' ? ' →' : ''}`)) : h('span');
+    const navBtn = (x, dir) => x ? (x.locked ? h('a', { class: 'btn ghost', href: '#/planes' }, `${dir === 'p' ? 'Anterior' : 'Siguiente'} (otra membresía)`) : h('a', { class: dir === 'n' ? 'btn primary' : 'btn ghost', href: '#/leccion/' + x.id, rel: dir === 'p' ? 'prev' : 'next' }, `${dir === 'p' ? '← ' : 'Siguiente: '}${splitTitle(x.title).title}${dir === 'n' ? ' →' : ''}`)) : h('span');
     const readBar = h('div', { class: 'read-progress', 'aria-hidden': 'true' }, h('span'));
 
-    page('ruta', readBar, h('article', { class: 'lesson' }, h('div', { class: 'narrow' },
-      h('div', { class: 'crumbs' }, h('a', { href: '#/ruta' }, 'Ruta'), ' › ', h('a', { href: '#/fase/' + phase.id }, phase.name), ` › Lección ${order} de ${phase.total}`),
-      h('h1', {}, l.title),
+    // Columna lateral con los módulos de la fase, como en la lección de muestra del sitio.
+    const side = phCat ? h('aside', { class: 'side' },
+      h('p', { class: 'eyebrow' }, `${phase.name} · ${phCat.horizon}`),
+      h('strong', { class: 'side-t' }, phase.title),
+      progressBar(phCat.progress.done, phCat.progress.total, `Avance de la ${phase.name}`),
+      h('ol', {}, phCat.lessons.map((x) => h('li', { class: (x.id === l.id ? 'now' : '') + (x.done ? ' done' : '') + (x.locked ? ' lock' : '') },
+        h('a', { href: x.locked ? '#/planes' : '#/leccion/' + x.id, 'aria-current': x.id === l.id ? 'page' : null }, h('i', {}, x.done ? '✓' : x.order), splitTitle(x.title).title))))) : null;
+
+    page('ruta', readBar, h('div', { class: 'container lesson-grid' }, side, h('article', { class: 'lesson' },
+      h('div', { class: 'crumbs' }, h('a', { href: '#/ruta' }, 'Mi carrera política'), ' › ', h('a', { href: '#/fase/' + phase.id }, phase.name), ` › Lección ${order} de ${phase.total}`),
+      h('p', { class: 'eyebrow' }, `${phase.name} · ${lt.tag || 'Lección ' + order}`),
+      h('h1', {}, lt.title),
       h('div', { class: 'row between lesson-meta' },
         h('p', { class: 'muted small', style: 'margin:0' }, `${l.minutes} min de lectura`),
         h('div', { class: 'row', style: 'gap:.4rem' },
@@ -572,18 +594,18 @@
           h('button', { class: 'chip', onclick: () => print() }, '⎙ Imprimir'))),
       h('p', { class: 'lead-summary' }, l.summary),
       h('div', { class: 'lesson-body' }, l.blocks.map(renderBlock)),
-      h('h2', { class: 'mt' }, 'Checklist de la lección'),
+      h('h2', { class: 'mt' }, 'Antes de seguir'),
       h('ul', { class: 'checklist' }, l.checklist.map((c, i) => h('li', {}, h('label', {}, h('input', {
         type: 'checkbox', checked: checked.has(i),
         onchange: async (e) => { try { await api(`/lessons/${l.id}/checks`, { method: 'POST', body: { idx: i, checked: e.target.checked } }); } catch (ex) { e.target.checked = !e.target.checked; toast(ex.message); } },
       }), h('span', {}, c))))),
       h('div', { class: 'card mt deliverable' },
-        h('span', { class: 'badge blue' }, 'Entregable'),
-        h('h3', { class: 'mt-s' }, l.deliverable.title),
-        h('p', { class: 'small' }, l.deliverable.prompt),
+        h('span', { class: 'chip-l' }, 'Entregable'),
+        h('h2', {}, l.deliverable.title),
+        h('p', { class: 'muted' }, l.deliverable.prompt),
         ta,
         h('div', { class: 'row between mt-s' }, h('div', { class: 'row', style: 'gap:.6rem' }, h('button', { class: 'btn blue small', onclick: save }, 'Guardar'), status), wc),
-        h('div', { class: 'row mt-s' }, reviewBtn, h('span', { class: 'small muted' }, 'Recibe una devolución contrastada con la consigna.')),
+        h('div', { class: 'row mt-s' }, reviewBtn, h('span', { class: 'small muted' }, 'Una devolución honesta, contrastada con la consigna.')),
         reviewBox),
       h('div', { class: 'row mt' }, doneBtn),
       afterDone,
@@ -607,26 +629,28 @@
       download('mis-entregables-elevation.md', `# Mis entregables de Elevation\n\n${md}`, 'text/markdown');
     };
     page('entregables', h('div', { class: 'container section' },
-      h('div', { class: 'row between' }, h('h1', {}, 'Mis entregables'), deliverables.length ? h('button', { class: 'btn ghost', onclick: exportAll }, '↓ Descargar todo (.md)') : null),
-      deliverables.length ? h('p', { class: 'muted' }, `${deliverables.length} ${deliverables.length === 1 ? 'entregable' : 'entregables'}, ordenados según la ruta.`) : null,
+      pageHead('Mis entregables', ['Lo que ya ', { b: 'construiste.' }],
+        deliverables.length ? `${deliverables.length} ${deliverables.length === 1 ? 'entregable' : 'entregables'}, en el orden de tu carrera política.` : 'Cada lección termina con un documento tuyo. Aquí se juntan todos.',
+        deliverables.length ? h('button', { class: 'btn ghost small', onclick: exportAll }, '↓ Descargar todo (.md)') : null),
       deliverables.length ? sorted.map((d) => h('div', { class: 'card mt-s' },
         h('div', { class: 'row between' }, h('div', {}, h('span', { class: 'badge blue' }, d.phase), ' ', h('strong', {}, d.title), d.reviewed ? [' ', h('span', { class: 'badge ok' }, 'Revisado')] : null), h('span', { class: 'small muted' }, fmtDate(d.updatedAt))),
         h('p', { class: 'small', style: 'white-space:pre-wrap;margin-top:.7rem' }, d.body.length > 600 ? d.body.slice(0, 600) + '…' : d.body),
-        h('div', { class: 'row', style: 'gap:.8rem' }, h('a', { href: '#/leccion/' + d.lessonId, class: 'small' }, 'Abrir lección y editar'), h('span', { class: 'small muted' }, `${words(d.body)} palabras`))))
-        : h('div', { class: 'card mt center' }, h('p', { class: 'muted' }, 'Aún no has guardado entregables. Cada lección tiene uno al final.'), h('a', { class: 'btn primary', href: '#/ruta' }, 'Ir a la ruta'))));
+        h('div', { class: 'row', style: 'gap:.8rem' }, h('a', { href: '#/leccion/' + d.lessonId, class: 'small' }, 'Abrir la lección y editar'), h('span', { class: 'small muted' }, `${words(d.body)} palabras`))))
+        : h('div', { class: 'card mt center' }, h('p', { class: 'muted' }, 'Todavía no guardas ningún entregable. Empieza por tu primera lección.'), h('a', { class: 'btn primary', href: '#/ruta' }, 'Ir a mi carrera política'))));
   }
 
   // ---------- Dashboard KPI ----------
   async function viewKpis() {
-    setTitle('Dashboard KPI');
+    setTitle('Mis métricas');
+    const head = (extra) => pageHead('Mis métricas', ['Decide con datos, ', { b: 'no con intuición.' }],
+      'Libros, presentaciones, aliados, medios, donantes y territorio: mide lo que importa en cada fase, con las metas de sus hitos.', extra);
     if (!hasPlan('pro')) {
-      return page('kpis', h('div', { class: 'container section' }, h('h1', {}, 'Dashboard KPI'),
-        h('p', { class: 'muted' }, 'Mide lo que importa en cada fase: libros, presentaciones, aliados, medios, donantes y cobertura territorial, con las metas de los hitos de Elevation.'),
-        upsell('pro', 'Decide con datos, no con intuición')));
+      return page('kpis', h('div', { class: 'container section' }, head(), upsell('pro', 'Tus métricas te esperan en Pro')));
     }
     page('kpis', loading());
     const { metrics } = await api('/kpis');
-    const PH = { start: 'Start', grow: 'Grow', scale: 'Scale' };
+    const PH = { start: 'Fase 1', grow: 'Fase 2', scale: 'Fase 4' };
+    const PH_T = { start: 'Fase 1 · Fundamentos del candidato', grow: 'Fase 2 · Capital social y redes', scale: 'Fase 4 · Posicionamiento' };
     const err = h('div', { class: 'err', role: 'alert' });
     const metricSel = h('select', { id: 'k-metric', name: 'metric' }, metrics.map((m) => h('option', { value: m.id }, `${PH[m.phase]} · ${m.label}${m.unit ? ` (${m.unit})` : ''}`)));
     const hint = h('p', { class: 'small muted', style: 'margin:.2rem 0 0' });
@@ -660,16 +684,15 @@
         m.entries.length ? entries : null);
     };
     page('kpis', h('div', { class: 'container section' },
-      h('div', { class: 'row between' }, h('h1', {}, 'Dashboard KPI'),
-        h('button', { class: 'btn ghost small', onclick: () => {
+      head(h('button', { class: 'btn ghost small', onclick: () => {
           const rows = [['indicador', 'fase', 'valor_actual', 'meta']].concat(metrics.map((m) => [m.label, PH[m.phase], m.current, m.goal ?? '']));
           download('kpis-elevation.csv', '\ufeff' + rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n'), 'text/csv');
         } }, '↓ Exportar CSV')),
-      h('p', { class: 'muted' }, 'Las metas vienen de los hitos de cada fase. Las gráficas muestran las últimas 12 semanas.'),
+      h('p', { class: 'small muted' }, 'Las gráficas muestran las últimas 12 semanas.'),
       h('div', { class: 'kpi-layout mt' },
         h('div', { class: 'card kpi-add' }, h('h3', {}, 'Nuevo registro'), form),
         h('div', {}, ['start', 'grow', 'scale'].map((ph) => [
-          h('h2', { class: 'kpi-phase' }, PH[ph]),
+          h('h2', { class: 'kpi-phase' }, PH_T[ph]),
           h('div', { class: 'grid c2' }, metrics.filter((m) => m.phase === ph).map(card))])))));
   }
 
@@ -695,8 +718,7 @@
       byMonth.get(k).push(e);
     }
     page('agenda', h('div', { class: 'container section' },
-      h('h1', {}, 'Agenda'),
-      h('p', { class: 'muted' }, 'Sesiones en vivo, mentorías grupales, talleres y convocatorias. Las horas se muestran en tu zona horaria.'),
+      pageHead('Agenda', ['Lo que viene, ', { b: 'en vivo.' }], 'Sesiones en vivo, mentorías grupales, talleres y convocatorias. Las horas están en tu zona horaria.'),
       h('div', { class: 'tabs' },
         h('a', { href: '#/agenda', class: 'tab' + (past ? '' : ' active') }, 'Próximos'),
         h('a', { href: '#/agenda?pasados=1', class: 'tab' + (past ? ' active' : '') }, 'Pasados')),
@@ -707,12 +729,12 @@
           return h('div', { class: 'card event mt-s' + (e.locked ? ' locked' : '') },
             h('div', { class: 'date-badge', 'aria-hidden': 'true' }, h('strong', {}, d.getDate()), h('span', {}, d.toLocaleDateString('es', { weekday: 'short' }))),
             h('div', { class: 'grow' },
-              h('div', { class: 'row', style: 'gap:.4rem' }, h('span', { class: 'badge blue' }, e.kindLabel), e.locked ? h('span', { class: 'badge lock' }, `Requiere ${PLAN_LABEL[e.minPlan]}`) : null),
+              h('div', { class: 'row', style: 'gap:.4rem' }, h('span', { class: 'badge blue' }, e.kindLabel), e.locked ? h('span', { class: 'badge lock' }, `Membresía ${PLAN_LABEL[e.minPlan]}`) : null),
               h('h3', { class: 'mt-s', style: 'margin-bottom:.2rem' }, e.title),
               h('p', { class: 'small muted', style: 'margin:0 0 .4rem' }, fmtLong(e.startsAt)),
               e.description ? h('p', { class: 'small', style: 'white-space:pre-wrap' }, e.description) : null,
               h('div', { class: 'row', style: 'gap:.5rem' },
-                e.locked ? h('a', { class: 'btn primary small', href: '#/planes' }, 'Ver planes')
+                e.locked ? h('a', { class: 'btn primary small', href: '#/planes' }, 'Ver membresías')
                   : [e.url && !past ? h('a', { class: 'btn primary small', href: e.url, target: '_blank', rel: 'noopener noreferrer' }, 'Unirme') : null,
                     !past ? h('button', { class: 'btn ghost small', onclick: () => download(`elevation-evento-${e.id}.ics`, icsFor(e), 'text/calendar') }, '+ Añadir a mi calendario') : null])));
         })])
@@ -749,10 +771,9 @@
       wErr, h('button', { class: 'btn blue', type: 'submit' }, 'Cambiar contraseña'));
 
     page('cuenta', h('div', { class: 'container section' },
-      h('h1', {}, 'Mi cuenta'),
-      h('p', { class: 'muted' }, `${u.email} · miembro desde ${fmtDate(u.createdAt)}`),
+      pageHead('Mi cuenta', ['Tu perfil, ', { b: 'tu membresía.' }], `${u.email} · en Elevation desde ${fmtDate(u.createdAt)}`),
       h('div', { class: 'grid c2 mt' },
-        h('div', { class: 'card' }, h('h3', {}, 'Perfil'), h('p', { class: 'small muted' }, 'Tu país y perfil ayudan a los asistentes a personalizar sus respuestas.'), profile),
+        h('div', { class: 'card' }, h('h3', {}, 'Perfil'), h('p', { class: 'small muted' }, 'Con tu país y tu perfil, los asistentes te responden pensando en tu realidad.'), profile),
         h('div', { class: 'card' }, h('h3', {}, 'Seguridad'), pwd)),
       h('div', { class: 'grid c2 mt' },
         h('div', { class: 'card' }, h('h3', {}, 'Plan'),
@@ -774,7 +795,7 @@
   const authorTag = (name, role) => [name, role === 'admin' ? [' ', h('span', { class: 'badge blue' }, 'Equipo')] : null];
 
   async function viewCommunity(query) {
-    setTitle('Comunidad');
+    setTitle('Mi red');
     page('comunidad', loading());
     const { channels } = await api('/community/channels');
     const sel = query.get('canal') || (channels.find((c) => !c.locked) || channels[0]).id;
@@ -792,7 +813,7 @@
         h('p', { class: 'small', style: 'margin:0' }, p.body.length > 180 ? p.body.slice(0, 180) + '…' : p.body));
       const load = async (offset) => {
         const r = await api(`/community/posts?channel=${ch.id}&offset=${offset}`);
-        if (!offset && !r.posts.length) list.appendChild(h('p', { class: 'muted center' }, 'Aún no hay publicaciones. Sé el primero.'));
+        if (!offset && !r.posts.length) list.appendChild(h('p', { class: 'muted center' }, 'Todavía no hay publicaciones. Abre tú la conversación.'));
         r.posts.forEach((p) => list.appendChild(postCard(p)));
         more.replaceChildren(r.more ? h('button', { class: 'btn ghost', onclick: () => load(r.nextOffset) }, 'Cargar más') : '');
       };
@@ -807,9 +828,11 @@
         h('div', { class: 'field' }, h('label', { for: 'pt' }, 'Título'), h('input', { id: 'pt', name: 'title', required: true, maxlength: 140 })),
         h('div', { class: 'field' }, h('label', { for: 'pb' }, 'Mensaje'), h('textarea', { id: 'pb', name: 'body', required: true, maxlength: 4000 })),
         err, h('button', { class: 'btn blue', type: 'submit' }, 'Publicar'));
-      body = [h('details', { class: 'card mb' }, h('summary', { style: 'cursor:pointer;font-weight:600' }, '+ Nueva publicación'), h('div', { class: 'mt-s' }, form)), list, more];
+      body = [h('details', { class: 'card mb' }, h('summary', { style: 'cursor:pointer;font-weight:600' }, '+ Publicar en la red'), h('div', { class: 'mt-s' }, form)), list, more];
     }
-    page('comunidad', h('div', { class: 'container section' }, h('h1', {}, 'Comunidad'), h('p', { class: 'muted' }, ch.desc), tabs, body));
+    page('comunidad', h('div', { class: 'container section' },
+      pageHead('Mi red', ['Contacta con quienes ', { b: 'piensan como tú.' }], 'Consultores, candidatos, gobernantes y equipos de campaña de toda América Latina.'),
+      tabs, h('p', { class: 'muted' }, ch.desc), body));
   }
 
   async function viewPost(id) {
@@ -823,7 +846,7 @@
       catch (ex) { err.textContent = ex.message; }
     } }, h('div', { class: 'field' }, h('label', { for: 'cb' }, 'Tu respuesta'), h('textarea', { id: 'cb', name: 'body', required: true, maxlength: 2000 })), err, h('button', { class: 'btn blue', type: 'submit' }, 'Responder'));
     page('comunidad', h('div', { class: 'container section' }, h('div', { class: 'narrow' },
-      h('div', { class: 'crumbs' }, h('a', { href: '#/comunidad?canal=' + d.post.channel }, 'Comunidad'), ' › Publicación'),
+      h('div', { class: 'crumbs' }, h('a', { href: '#/comunidad?canal=' + d.post.channel }, 'Mi red'), ' › Publicación'),
       h('h1', {}, d.post.title),
       h('p', { class: 'small muted' }, authorTag(d.post.author, d.post.author_role), ` · ${fmtDate(d.post.created_at)}`),
       h('p', { style: 'white-space:pre-wrap' }, d.post.body),
@@ -845,15 +868,14 @@
     const d = await api('/assistants');
     const left = Math.max(0, d.dailyLimit - d.usedToday);
     page('asistentes', h('div', { class: 'container section' },
-      h('h1', {}, 'Asistentes virtuales'),
-      h('p', { class: 'muted' }, `Conocen tu fase, tu perfil y tus últimos entregables. Hoy te quedan ${left} de ${d.dailyLimit} mensajes.`),
+      pageHead('Asistentes', ['Cuatro asistentes, ', { b: 'una estrategia.' }], `Conocen tu fase, tu perfil y tus últimos entregables. Hoy te quedan ${left} de ${d.dailyLimit} mensajes.`),
       d.dailyLimit ? h('div', { style: 'max-width:360px' }, progressBar(d.usedToday, d.dailyLimit, 'Mensajes usados hoy')) : null,
       !d.configured ? h('div', { class: 'callout' }, h('strong', { class: 't' }, 'Modo demo'), h('p', {}, 'Los asistentes aún no están conectados a un modelo de lenguaje. Configura ANTHROPIC_API_KEY en el servidor para activarlos.')) : null,
       h('div', { class: 'grid c2 mt' }, d.assistants.map((a) => h('div', { class: 'card lift assistant-card' },
         h('div', { class: 'row between' }, h('div', { class: 'row', style: 'gap:.7rem' }, h('span', { class: 'avatar big', 'aria-hidden': 'true' }, a.name[0]), h('div', {}, h('h3', { style: 'margin:0' }, a.name), h('div', { class: 'phase-num', style: 'font-size:.95rem' }, a.area))),
-          a.locked ? h('span', { class: 'badge lock' }, `Requiere ${PLAN_LABEL[a.minPlan]}`) : h('span', { class: 'badge ok' }, 'Disponible')),
+          a.locked ? h('span', { class: 'badge lock' }, `Membresía ${PLAN_LABEL[a.minPlan]}`) : h('span', { class: 'badge ok' }, 'Disponible')),
         h('p', { class: 'small mt-s' }, a.desc),
-        a.locked ? h('a', { class: 'btn ghost small', href: '#/planes' }, 'Ver planes') : h('a', { class: 'btn primary small', href: '#/asistentes/' + a.id }, `Hablar con ${a.name}`))))));
+        a.locked ? h('a', { class: 'btn ghost small', href: '#/planes' }, 'Ver membresías') : h('a', { class: 'btn primary small', href: '#/asistentes/' + a.id }, `Hablar con ${a.name}`))))));
   }
 
   // Lee la respuesta SSE del servidor y llama a onText con cada fragmento.
@@ -889,7 +911,7 @@
     page('asistentes', loading());
     const [list, hist] = await Promise.all([api('/assistants'), api(`/assistants/${id}/history`).catch((e) => ({ error: e }))]);
     const a = list.assistants.find((x) => x.id === id);
-    if (!a || hist.error) return page('asistentes', h('div', { class: 'narrow section center' }, h('h1', {}, 'Asistente no disponible'), h('p', { class: 'muted' }, hist.error ? hist.error.message : 'No existe.'), h('a', { class: 'btn primary', href: '#/planes' }, 'Ver planes')));
+    if (!a || hist.error) return page('asistentes', h('div', { class: 'narrow section center' }, h('h1', {}, 'Asistente no disponible'), h('p', { class: 'muted' }, hist.error ? hist.error.message : 'No existe.'), h('a', { class: 'btn primary', href: '#/planes' }, 'Ver membresías')));
     setTitle(a.name);
     let used = list.usedToday;
     const counter = h('span', { class: 'small muted' });
@@ -959,7 +981,7 @@
     const tabs = h('div', { class: 'tabs' }, [['usuarios', 'Usuarios'], ['leads', 'Leads del test'], ['eventos', 'Agenda']].map(([k, t]) => h('a', { href: '#/admin?tab=' + k, class: 'tab' + (tab === k ? ' active' : '') }, t)));
     const stats = await api('/admin/stats');
     const head = [
-      h('h1', {}, 'Administración'),
+      pageHead('Administración', ['El tablero ', { b: 'del equipo.' }], null),
       h('div', { class: 'grid c4 mt' },
         [['Usuarios', stats.total, `+${stats.new7} esta semana`], ['Activos 7 días', stats.active7, `${stats.trials} en prueba`], ['MRR estimado', `US$${fmtNum(stats.mrr)}`, 'Según planes asignados'], ['Mensajes a asistentes', stats.msgs, `${stats.deliverables} entregables`]]
           .map(([t, n, sub]) => h('div', { class: 'card' }, h('div', { class: 'stat' }, n), h('p', { class: 'small', style: 'margin:.4rem 0 0;font-weight:600' }, t), h('p', { class: 'small muted', style: 'margin:0' }, sub)))),
@@ -1053,7 +1075,7 @@
 
   function viewNotFound() {
     setTitle('Página no encontrada');
-    page('', h('div', { class: 'narrow section center' }, h('h1', {}, 'Página no encontrada'), h('a', { class: 'btn primary', href: '#/' }, 'Volver al inicio')));
+    page('', h('div', { class: 'narrow section center' }, h('span', { class: 'ttl' }, '404'), h('h1', { class: 'mt-s' }, 'Esta página ', h('strong', {}, 'no existe.')), h('a', { class: 'btn primary', href: '#/' }, 'Volver a mi ruta')));
   }
 
   // ---------- Router ----------
@@ -1091,7 +1113,7 @@
     } catch (ex) {
       if (ex.status === 401) return;
       if (ex.status === 404) return viewNotFound();
-      page('', h('div', { class: 'narrow section center' }, h('h1', {}, 'Algo salió mal'), h('p', { class: 'muted' }, ex.message), h('a', { class: 'btn primary', href: '#/' }, 'Volver al inicio')));
+      page('', h('div', { class: 'narrow section center' }, h('h1', {}, 'Algo ', h('strong', {}, 'salió mal.')), h('p', { class: 'muted' }, ex.message), h('a', { class: 'btn primary', href: '#/' }, 'Volver a mi ruta')));
     }
   }
 

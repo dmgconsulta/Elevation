@@ -3,13 +3,13 @@ const { p, h, ul, ol, quote, callout, table } = require('./h');
 module.exports = {
   id: 'launch',
   order: 3,
-  name: 'Launch',
-  title: 'La Primera Apuesta Pública',
+  name: 'Fase 3',
+  title: 'La primera apuesta pública',
   subtitle: 'Cinco rutas · Una decisión · La prueba real de fuego',
   horizon: 'Año 4–6',
   minPlan: 'pro',
   intro:
-    'Las fases anteriores construyeron al candidato por dentro y lo conectaron con su territorio. Launch es el momento en que todo se prueba en público por primera vez. La primera apuesta pública no siempre es una elección: puede tomar cinco formas distintas, todas legítimas y estratégicas.',
+    'Las fases anteriores construyeron al candidato por dentro y lo conectaron con su territorio. La Fase 3 es el momento en que todo se prueba en público por primera vez. La primera apuesta pública no siempre es una elección: puede tomar cinco formas distintas, todas legítimas y estratégicas.',
   premise: 'La primera apuesta pública no tiene que ganarse: tiene que aprenderse. Una derrota bien gestionada consolida bases; una victoria mal gestionada las destruye.',
   milestones: [
     { hito: 'Ruta elegida y ejecutada', criterio: 'Se completó al menos una ruta de principio a fin, sin abandono' },
@@ -17,7 +17,7 @@ module.exports = {
     { hito: 'Diagnóstico documentado', criterio: 'Existe un análisis escrito de lo que funcionó y lo que falló' },
     { hito: 'Red fortalecida', criterio: 'La red de aliados creció, no se redujo, durante la primera apuesta' },
     { hito: 'Historial público positivo', criterio: 'Existe al menos un logro concreto y verificable atribuible a ti' },
-    { hito: 'Siguiente paso definido', criterio: 'Hay claridad documentada sobre qué viene en Scale y cuándo' },
+    { hito: 'Siguiente paso definido', criterio: 'Hay claridad documentada sobre qué viene en la Fase 4 y cuándo' },
   ],
   errors: [
     'Asumir que esta fase siempre significa presentarse a una elección.',
@@ -56,7 +56,7 @@ module.exports = {
         'Identifiqué la ruta que corresponde a mi momento y una ruta de respaldo.',
       ],
       deliverable: {
-        title: 'Mi ruta de Launch',
+        title: 'Mi ruta de primera apuesta pública',
         prompt: 'Responde las cuatro preguntas, indica la ruta elegida y la ruta de respaldo, y justifica en un párrafo por qué ninguna de las otras es prematura o inviable para ti hoy.',
       },
     },
@@ -345,9 +345,9 @@ module.exports = {
     },
     {
       id: 'l8',
-      title: 'Cierre: hitos de Launch',
+      title: 'Cierre: hitos de la Fase 3',
       minutes: 6,
-      summary: 'Qué debes poder demostrar, independientemente de la ruta elegida, para avanzar a Scale.',
+      summary: 'Qué debes poder demostrar, independientemente de la ruta elegida, para avanzar a la Fase 4.',
       blocks: [
         p('La fase se considera completa cuando puedes demostrar los resultados que aparecen en tu panel de hitos, sin importar la ruta elegida. Una ruta ejecutada de principio a fin, sin abandono, y el aprendizaje documentado, importan más que el resultado electoral.'),
         quote('La primera apuesta pública no define la carrera. Define si habrá una segunda apuesta, y con qué pie se dará.'),
@@ -355,7 +355,7 @@ module.exports = {
       checklist: [
         'Escribí el diagnóstico de lo que funcionó y lo que falló.',
         'Verifiqué que mi red de aliados creció.',
-        'Definí qué viene en Scale y cuándo.',
+        'Definí qué viene en la Fase 4 y cuándo.',
       ],
       deliverable: {
         title: 'Diagnóstico post-apuesta',
