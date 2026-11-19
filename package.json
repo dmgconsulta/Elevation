@@ -7,7 +7,8 @@
     "start": "node server.js",
     "dev": "node --watch server.js",
     "check": "node scripts/check.js",
-    "test": "node --test test/*.test.js"
+    "test": "node --test test/*.test.js",
+    "demo": "node scripts/build-demo.js"
   },
   "engines": { "node": ">=22.13" },
   "dependencies": {
