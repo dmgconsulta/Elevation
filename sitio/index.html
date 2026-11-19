@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Elevation · Escuela de estrategia política para América Latina</title>
+<meta name="description" content="Te ayudamos a elevar tu carrera política para que tú eleves la política en América Latina. Ruta de 10 años en 4 fases, red de contactos y test ideológico latinoamericano.">
+<meta name="theme-color" content="#373596">
+<link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="img/icon-180.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Elevation · We elevate nations">
+<meta property="og:description" content="Construye tu carrera política: 10 años de acompañamiento en 4 fases online, red de contactos y test ideológico.">
+<meta property="og:image" content="img/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@1,6..72,300;1,6..72,400&family=Outfit:wght@300;400;500;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/site.css">
+
+
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="io" viewBox="0 0 66 40"><circle cx="8" cy="5.5" r="5.5" stroke="none"/><path d="M8 18V26C8 36 20 38 27 31L37 21C44 14 58 16 58 26C58 36 44 38 37 31L31.5 25.5" fill="none" stroke-width="9.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+</defs></svg>
+
+<header class="top"><div class="wrap">
+  <a class="logo" href="#inicio" aria-label="Elevation, inicio">ELEVAT<svg viewBox="0 0 66 40" aria-hidden="true"><use href="#io"/></svg>N</a>
+  <nav class="ideas" aria-label="Secciones">
+    <button data-scroll="s1">Nuestra misión</button><button data-scroll="s2">Mi carrera política</button><button data-scroll="s3">Mi red</button><button data-scroll="s4">Mi test</button>
+  </nav>
+  <div class="tcta"><a class="btn line" href="#s4" data-app="login">Mi membresía</a><button class="btn sun" data-scroll="s4">Empezar gratis</button></div>
+</div></header>
+
+<!-- ================= INICIO ================= -->
+<main class="view" id="v-inicio">
+
+  <section class="sp sp1" id="s1"><div class="wrap ctr">
+    <span class="ttl">Nuestra misión</span>
+    <h1><em class="s">We elevate</em> nations</h1>
+    <div class="map3d" id="map3d" role="img" aria-label="Mapa de América Latina en el que cada país se eleva"></div>
+    <p class="big">Te ayudamos a elevar tu carrera política para que tú eleves la política en América Latina.</p>
+    <div class="cta">
+      <button class="btn sun" data-scroll="s4"><b class="n">1</b>Descubre quién eres</button>
+      <a class="btn white" href="#s4" data-app="registro"><b class="n">2</b>Iniciar mi membresía</a>
+    </div>
+  </div></section>
+
+  <section class="sp sp2" id="s2">
+    <div class="vbg" aria-hidden="true">
+      <div class="vph"></div>
+      <video autoplay muted loop playsinline preload="auto" poster="video/carrera.jpg" src="video/carrera.mp4" onerror="this.remove()"></video>
+    </div>
+    <div class="wrap ctr">
+      <span class="ttl">Mi carrera política</span>
+      <h2>Construye tu <strong>carrera política.</strong></h2>
+      <p class="big">10 años de acompañamiento en 4 fases online.</p>
+    </div>
+    <div class="wrap">
+      <div class="track" role="tablist" aria-label="Fases de tu carrera" id="track"></div>
+      <div class="phase" id="phase" role="tabpanel"></div>
+      <div class="cta" style="justify-content:center"><button class="btn sun" data-go="leccion">Mira una lección</button></div>
+    </div>
+  </section>
+
+  <section class="sp sp3" id="s3">
+    <div class="vbg" aria-hidden="true">
+      <video autoplay muted loop playsinline preload="auto" poster="video/red.jpg" src="video/red.mp4" onerror="this.remove()"></video>
+    </div>
+    <div class="wrap ctr">
+      <span class="ttl">Red de contactos global</span>
+      <h2>Contacta con quienes <strong>piensan como tú.</strong></h2>
+      <p class="big">Consultores, candidatos, gobernantes y equipos de campaña de toda América Latina en un mismo lugar.</p>
+      <div class="stack" aria-hidden="true">
+        <img src="img/p3.jpg" alt=""><img src="img/p1.jpg" alt=""><img src="img/p4.jpg" alt=""><img src="img/p2.jpg" alt=""><span>JT</span><span>RC</span><span class="more">y tú</span>
+      </div>
+    </div>
+    <p class="wrap rowh">Lo que se está moviendo <span class="chip">Ejemplos</span></p>
+    <div class="mq" id="mq-posts"></div>
+    <p class="wrap rowh">Causas y grupos</p>
+    <div class="mq rev" id="mq-groups"></div>
+  </section>
+
+  <section class="sp sp4" id="s4">
+    <div class="wall" id="wall" aria-hidden="true"></div>
+    <div class="wrap">
+    <div class="ctr">
+      <span class="ttl">El test</span>
+      <h2>¿Dónde te paras <strong>en política?</strong></h2>
+      <p class="big">Empecemos descubriendo quién eres.</p>
+    </div>
+    <div class="arena" id="test-card" aria-label="Test ideológico" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <footer><div class="wrap"><a class="logo" href="#inicio" aria-label="Elevation, inicio">ELEVAT<svg viewBox="0 0 66 40" aria-hidden="true"><use href="#io"/></svg>N</a><span>La red de consultores y políticos de América Latina · © <span id="yr">2026</span> Elevation</span></div></footer>
+</main>
+
+<!-- ================= LECCIÓN ================= -->
+<main class="view" id="v-leccion"><div class="wrap lesson">
+  <aside class="side">
+    <p class="eyebrow">Fase 1 · Año 1–2</p>
+    <strong style="font-size:20px;font-weight:500;line-height:1.2">Fundamentos del candidato</strong>
+    <div class="bar"><i style="width:33%"></i></div>
+    <ol>
+      <li class="done"><i>✓</i>Diagnóstico personal</li>
+      <li class="now"><i>2</i>Construcción de narrativa personal</li>
+      <li><i>3</i>Definición ideológica y posicionamiento</li>
+      <li><i>4</i>Formación política acelerada</li>
+      <li><i>5</i>Trabajo de imagen</li>
+      <li><i>6</i>El mentor</li>
+    </ol>
+  </aside>
+  <article class="body">
+    <div style="display:grid;gap:12px">
+      <p class="eyebrow">Lección de muestra · Módulo 2 · Lección 1</p>
+      <h1>Los tres componentes de una <em class="s">narrativa política efectiva</em></h1>
+      <p class="muted">La narrativa personal no es una biografía ni un currículum. Es la historia que conecta tu origen con el problema que quieres resolver y con la persona en que te has convertido para resolverlo.</p>
+    </div>
+    <div class="video"><span class="play" aria-hidden="true"></span><small>Espacio para el video de la lección</small></div>
+    <div class="three">
+      <div><b>01 · ORIGEN</b><strong>¿De dónde vengo?</strong><span>El momento o la experiencia que moldea tus valores.</span></div>
+      <div><b>02 · TENSIÓN</b><strong>¿Qué me movió a actuar?</strong><span>El conflicto que te interpela personalmente.</span></div>
+      <div><b>03 · PROPUESTA</b><strong>¿Qué puedo hacer yo?</strong><span>Lo que puedes hacer por otros que nadie más puede hacer igual.</span></div>
+    </div>
+    <div class="ex">
+      <span class="chip" style="justify-self:start">Ejercicio</span>
+      <h2>Escribe tu narrativa de 90 segundos</h2>
+      <p class="muted" style="font-size:16px">Usa los tres movimientos. Tiene que pasar la prueba del escéptico: alguien que no te conoce y no tiene razón para creerte.</p>
+      <label for="narr" style="position:absolute;left:-9999px">Tu narrativa</label>
+      <textarea id="narr" placeholder="Vengo de…"></textarea>
+      <div class="bar"><i id="nbar" style="width:0"></i></div>
+      <div class="meter"><span id="ncount">0 palabras · 0 s en voz alta</span><span>Meta: 90 s (cerca de 210 palabras, estimado)</span></div>
+    </div>
+    <div style="display:grid;gap:12px">
+      <h2 style="font-size:26px">Principios de autenticidad</h2>
+      <ul class="rules">
+        <li>La narrativa no se inventa: se descubre y se articula.</li>
+        <li>La historia que cuentas en público debe ser la misma que cuentas en privado.</li>
+        <li>Mostrar una dificultad superada genera más empatía que presumir logros.</li>
+        <li>El enemigo de la narrativa es la vaguedad. «Quiero un mejor país» no es narrativa, es ruido.</li>
+      </ul>
+    </div>
+    <div class="navl"><button class="btn ghost" data-scroll="s2">Volver al inicio</button><a class="btn sun" href="#s4" data-app="registro">Sigue con la Fase 1 en la plataforma</a></div>
+  </article>
+</div></main>
+
+<script src="data/map.js"></script>
+<script src="data/test-data.js"></script>
+<script src="config.js"></script>
+<script src="js/site.js"></script>
+</body>
+</html>

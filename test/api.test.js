@@ -11,6 +11,7 @@ process.env.SESSION_SECRET = 'test-secret';
 process.env.ADMIN_EMAIL = 'admin@test.com';
 process.env.ADMIN_PASSWORD = 'admin-pass-123';
 process.env.PAYMENTS_MODE = 'demo';
+process.env.SITE_ORIGIN = 'https://sitio.test';
 delete process.env.ANTHROPIC_API_KEY;
 
 const app = require('../server');
@@ -196,4 +197,25 @@ test('admin: estadísticas, búsqueda y CSV sin inyección de fórmulas', async 
   assert.equal(u.data.users.length, 1);
   const csv = await admin.get('/api/admin/users.csv?q=HYPERLINK');
   assert.match(csv.data, /'=HYPERLINK/);
+});
+
+test('leads del test: CORS para el sitio, validación y vista de admin', async () => {
+  const pre = await fetch(base + '/api/leads', { method: 'OPTIONS', headers: { origin: 'https://sitio.test', 'access-control-request-method': 'POST' } });
+  assert.equal(pre.status, 204);
+  assert.equal(pre.headers.get('access-control-allow-origin'), 'https://sitio.test');
+  const other = await fetch(base + '/api/leads', { method: 'OPTIONS', headers: { origin: 'https://otro.test' } });
+  assert.equal(other.headers.get('access-control-allow-origin'), null, 'otros orígenes no reciben permiso');
+  const c = client();
+  assert.equal((await c.post('/api/leads', { name: 'Ana', email: 'no-es-correo' })).status, 400);
+  const ok = await c.post('/api/leads', { name: 'Ana Lead', email: 'Lead@Test.com', country: 'Chile', economia: 3.4, orden: 2.1, zona: 'Centro liberal', answers: [1, 2, 9] });
+  assert.equal(ok.status, 201);
+  assert.equal((await c.get('/api/admin/leads')).status, 401, 'solo admins ven los leads');
+  const admin = client();
+  await admin.post('/api/auth/login', { email: 'admin@test.com', password: 'admin-pass-123' });
+  const l = (await admin.get('/api/admin/leads?q=lead@test.com')).data.leads;
+  assert.equal(l.length, 1);
+  assert.equal(l[0].email, 'lead@test.com');
+  assert.equal(l[0].registered, 0);
+  assert.match((await admin.get('/api/admin/leads.csv')).data, /lead@test\.com/);
+  assert.ok((await admin.get('/api/admin/stats')).data.leads >= 1);
 });

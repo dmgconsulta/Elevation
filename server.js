@@ -36,6 +36,22 @@ app.get('/healthz', (_req, res) => {
 
 app.use(express.json({ limit: '100kb' }));
 
+// El sitio de presentación (otro dominio) envía los resultados del test a /api/leads.
+// SITE_ORIGIN: orígenes permitidos separados por comas, p. ej. https://elevation.lat,https://www.elevation.lat
+const SITE_ORIGINS = (process.env.SITE_ORIGIN || '').split(',').map((s) => s.trim().replace(/\/+$/, '')).filter(Boolean);
+app.use('/api/leads', (req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin && SITE_ORIGINS.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+    res.setHeader('Access-Control-Allow-Methods', 'POST');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Max-Age', '86400');
+  }
+  if (req.method === 'OPTIONS') return res.status(204).end();
+  next();
+});
+
 // Defensa CSRF: toda escritura debe llegar como JSON (un formulario cruzado no puede).
 app.use('/api', (req, res, next) => {
   if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method) && !req.is('application/json')) {
@@ -604,6 +620,7 @@ app.get('/api/admin/stats', auth.requireAuth, auth.requireAdmin, (_req, res) => 
     deliverables: one("SELECT COUNT(*) AS n FROM deliverables WHERE trim(body) <> ''"),
     posts: one('SELECT COUNT(*) AS n FROM posts'),
     msgs: one("SELECT COUNT(*) AS n FROM chat_msgs WHERE role = 'user'"),
+    leads: one('SELECT COUNT(*) AS n FROM leads'),
     topLessons: db.prepare('SELECT lesson_id, COUNT(*) AS n FROM lesson_done GROUP BY lesson_id ORDER BY n DESC LIMIT 5').all()
       .map((r) => ({ title: content.getLesson(r.lesson_id)?.title || r.lesson_id, n: r.n })),
   });
@@ -622,13 +639,15 @@ app.get('/api/admin/users', auth.requireAuth, auth.requireAdmin, (req, res) => {
   res.json({ users: adminUsers(clean(req.query.q, 80)) });
 });
 
+const csvCell = (v) => {
+  let s = v === null || v === undefined ? '' : String(v);
+  if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; // evita inyección de fórmulas en hojas de cálculo
+  return /[",\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+};
+const isoDay = (ts) => (ts ? new Date(ts).toISOString().slice(0, 10) : '');
+
 app.get('/api/admin/users.csv', auth.requireAuth, auth.requireAdmin, (req, res) => {
-  const cell = (v) => {
-    let s = v === null || v === undefined ? '' : String(v);
-    if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; // evita inyección de fórmulas en hojas de cálculo
-    return /[",\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-  };
-  const iso = (ts) => (ts ? new Date(ts).toISOString().slice(0, 10) : '');
+  const cell = csvCell, iso = isoDay;
   const rows = adminUsers(clean(req.query.q, 80));
   const lines = [['id', 'nombre', 'correo', 'plan', 'rol', 'pais', 'perfil', 'alta', 'ultima_actividad', 'lecciones'].join(',')]
     .concat(rows.map((u) => [u.id, u.name, u.email, u.plan, u.role, u.country, u.segment, iso(u.created_at), iso(u.last_seen_at), u.lessons_done].map(cell).join(',')));
@@ -648,6 +667,38 @@ app.patch('/api/admin/users/:id', auth.requireAuth, auth.requireAdmin, (req, res
   const trial = req.body.extendTrial ? now() + TRIAL_DAYS * DAY : u.trial_ends_at;
   db.prepare('UPDATE users SET plan = ?, role = ?, trial_ends_at = ? WHERE id = ?').run(plan, role, trial, id);
   res.json({ ok: true });
+});
+
+// ---------- Leads del test ideológico (sitio de presentación) ----------
+app.post('/api/leads', (req, res) => {
+  if (!auth.rateLimit('lead:' + req.ip, 20, 3600000)) return res.status(429).json({ error: 'Demasiados envíos. Intenta más tarde.' });
+  const name = clean(req.body.name, 80);
+  const email = clean(req.body.email, 120).toLowerCase();
+  if (name.length < 1 || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return res.status(400).json({ error: 'Nombre o correo no válidos.' });
+  const axis = (v) => { const n = Number(v); return Number.isFinite(n) && n >= 1 && n <= 5 ? Math.round(n * 10) / 10 : null; };
+  const answers = Array.isArray(req.body.answers) ? req.body.answers.slice(0, 50).map((a) => (Number.isInteger(a) && a >= 1 && a <= 5 ? a : null)) : null;
+  db.prepare('INSERT INTO leads (name, email, country, economia, orden, zona, answers, created_at) VALUES (?,?,?,?,?,?,?,?)')
+    .run(name, email, clean(req.body.country, 60) || null, axis(req.body.economia), axis(req.body.orden), clean(req.body.zona, 80) || null, answers ? JSON.stringify(answers) : null, now());
+  res.status(201).json({ ok: true });
+});
+
+function adminLeads(q) {
+  const like = `%${q}%`;
+  return db.prepare(`SELECT l.id, l.name, l.email, l.country, l.economia, l.orden, l.zona, l.created_at,
+      EXISTS(SELECT 1 FROM users u WHERE u.email = l.email) AS registered
+    FROM leads l WHERE (? = '' OR l.name LIKE ? OR l.email LIKE ? OR l.country LIKE ?) ORDER BY l.created_at DESC LIMIT 1000`).all(q, like, like, like);
+}
+
+app.get('/api/admin/leads', auth.requireAuth, auth.requireAdmin, (req, res) => {
+  res.json({ leads: adminLeads(clean(req.query.q, 80)) });
+});
+
+app.get('/api/admin/leads.csv', auth.requireAuth, auth.requireAdmin, (req, res) => {
+  const lines = [['id', 'nombre', 'correo', 'pais', 'economia', 'orden_valores', 'zona', 'fecha', 'registrado'].join(',')]
+    .concat(adminLeads(clean(req.query.q, 80)).map((l) => [l.id, l.name, l.email, l.country, l.economia, l.orden, l.zona, isoDay(l.created_at), l.registered ? 'si' : 'no'].map(csvCell).join(',')));
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', 'attachment; filename="leads-test-elevation.csv"');
+  res.send('﻿' + lines.join('\n'));
 });
 
 // ---------- Estático y errores ----------

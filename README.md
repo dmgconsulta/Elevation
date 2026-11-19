@@ -41,5 +41,10 @@ Ver `.env.example`. Sin `ANTHROPIC_API_KEY` los asistentes responden en modo dem
 - El proxy no debe almacenar en búfer `text/event-stream` (se envía `X-Accel-Buffering: no` para nginx).
 - Rate limiting en memoria: con varias instancias, moverlo a Redis.
 
+## Sitio de presentación (`sitio/`)
+Web pública estática (portada, ruta de 4 fases, red, test ideológico y lección de muestra). Se sube tal cual a cualquier hosting: ver `sitio/LEEME.txt`.
+- `sitio/config.js` → `appUrl`: dirección de esta plataforma. Los botones de membresía llevan a `/#/login` o `/#/registro` con nombre, correo y país del test ya escritos.
+- Cada test completado se envía a `POST /api/leads` y aparece en Administración → Leads del test (con export CSV). La plataforma solo lo acepta desde los orígenes de `SITE_ORIGIN`.
+
 ## Estructura
-`server.js` rutas · `lib/` db, auth, planes, asistentes, kpis · `content/` lecciones · `public/` SPA · `test/` pruebas.
+`server.js` rutas · `lib/` db, auth, planes, asistentes, kpis · `content/` lecciones · `public/` SPA · `sitio/` web pública · `test/` pruebas.

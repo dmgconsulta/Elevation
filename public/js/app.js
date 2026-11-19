@@ -321,8 +321,10 @@
         h('a', { href: '#/registro', class: 'btn primary' }, 'Crear mi cuenta'))));
   }
 
-  function authForm(mode) {
+  // `query` puede traer name, email y country desde el test del sitio de presentación.
+  function authForm(mode, query = new URLSearchParams()) {
     const isReg = mode === 'registro';
+    const pre = (k, max) => (query.get(k) || '').slice(0, max);
     setTitle(isReg ? 'Crear cuenta' : 'Entrar');
     const err = h('div', { class: 'err', role: 'alert' });
     const f = (id, label, attrs = {}) => h('div', { class: 'field' }, h('label', { for: id }, label), h('input', { id, name: id, required: true, ...attrs }));
@@ -341,11 +343,11 @@
         } catch (ex) { err.textContent = ex.message; btn.disabled = false; }
       },
     },
-      isReg ? f('name', 'Nombre completo', { autocomplete: 'name' }) : null,
-      f('email', 'Correo electrónico', { type: 'email', autocomplete: 'email' }),
+      isReg ? f('name', 'Nombre completo', { autocomplete: 'name', value: pre('name', 80) }) : null,
+      f('email', 'Correo electrónico', { type: 'email', autocomplete: 'email', value: pre('email', 120) }),
       h('div', { class: 'field' }, h('label', { for: 'password' }, 'Contraseña' + (isReg ? ' (mínimo 8 caracteres)' : '')),
         h('div', { class: 'pwd' }, pwd, h('button', { type: 'button', class: 'chip', 'aria-label': 'Mostrar u ocultar contraseña', onclick: (e) => { pwd.type = pwd.type === 'password' ? 'text' : 'password'; e.currentTarget.textContent = pwd.type === 'password' ? 'Ver' : 'Ocultar'; } }, 'Ver'))),
-      isReg ? h('div', { class: 'field' }, h('label', { for: 'country' }, 'País'), countryInput('country', '')) : null,
+      isReg ? h('div', { class: 'field' }, h('label', { for: 'country' }, 'País'), countryInput('country', pre('country', 60))) : null,
       isReg ? h('div', { class: 'field' }, h('label', { for: 'segment' }, '¿Cuál te describe mejor?'), segmentSelect('segment', '')) : null,
       err,
       h('button', { class: 'btn primary', type: 'submit', style: 'width:100%' }, isReg ? 'Crear cuenta' : 'Entrar'));
@@ -1015,18 +1017,19 @@
     setTitle('Administración');
     page('admin', loading());
     const tab = query.get('tab') || 'usuarios';
-    const tabs = h('div', { class: 'tabs' }, [['usuarios', 'Usuarios'], ['eventos', 'Agenda']].map(([k, t]) => h('a', { href: '#/admin?tab=' + k, class: 'tab' + (tab === k ? ' active' : '') }, t)));
+    const tabs = h('div', { class: 'tabs' }, [['usuarios', 'Usuarios'], ['leads', 'Leads del test'], ['eventos', 'Agenda']].map(([k, t]) => h('a', { href: '#/admin?tab=' + k, class: 'tab' + (tab === k ? ' active' : '') }, t)));
     const stats = await api('/admin/stats');
     const head = [
       h('h1', {}, 'Administración'),
       h('div', { class: 'grid c4 mt' },
         [['Usuarios', stats.total, `+${stats.new7} esta semana`], ['Activos 7 días', stats.active7, `${stats.trials} en prueba`], ['MRR estimado', `US$${fmtNum(stats.mrr)}`, 'Según planes asignados'], ['Mensajes a asistentes', stats.msgs, `${stats.deliverables} entregables`]]
           .map(([t, n, sub]) => h('div', { class: 'card' }, h('div', { class: 'stat' }, n), h('p', { class: 'small', style: 'margin:.4rem 0 0;font-weight:600' }, t), h('p', { class: 'small muted', style: 'margin:0' }, sub)))),
-      h('p', { class: 'small muted mt' }, 'Por plan: ' + stats.byPlan.map((p) => `${PLAN_LABEL[p.plan]} ${p.n}`).join(' · ') + ` · ${stats.lessons} lecciones completadas · ${stats.posts} publicaciones`),
+      h('p', { class: 'small muted mt' }, 'Por plan: ' + stats.byPlan.map((p) => `${PLAN_LABEL[p.plan]} ${p.n}`).join(' · ') + ` · ${stats.lessons} lecciones completadas · ${stats.posts} publicaciones · ${stats.leads} leads del test`),
       stats.topLessons.length ? h('p', { class: 'small muted' }, 'Lecciones más completadas: ' + stats.topLessons.map((l) => `${l.title} (${l.n})`).join(' · ')) : null,
       tabs,
     ];
     if (tab === 'eventos') return page('admin', h('div', { class: 'container section' }, head, await adminEvents()));
+    if (tab === 'leads') return page('admin', h('div', { class: 'container section' }, head, await adminLeads(query.get('q') || '')));
 
     const q = query.get('q') || '';
     const { users } = await api('/admin/users?q=' + encodeURIComponent(q));
@@ -1046,6 +1049,25 @@
           h('td', {}, h('select', { 'aria-label': 'Rol de ' + u.name, onchange: async (e) => { if (!(await patch(u, { role: e.target.value }, 'Rol actualizado.'))) e.target.value = u.role; else u.role = e.target.value; } },
             [['member', 'Miembro'], ['admin', 'Admin']].map(([v, t]) => h('option', { value: v, selected: u.role === v }, t)))),
           h('td', {}, u.plan === 'free' ? h('button', { class: 'link-btn small', onclick: () => patch(u, { extendTrial: true }, 'Prueba renovada por 3 días.') }, 'Renovar prueba') : ''))))))));
+  }
+
+  // Personas que hicieron el test en el sitio de presentación.
+  async function adminLeads(q) {
+    const { leads } = await api('/admin/leads?q=' + encodeURIComponent(q));
+    const search = h('form', { class: 'row', onsubmit: (e) => { e.preventDefault(); go('/admin?tab=leads&q=' + encodeURIComponent(search.elements.q.value.trim())); } },
+      h('input', { name: 'q', type: 'search', value: q, placeholder: 'Buscar por nombre, correo o país', 'aria-label': 'Buscar leads', style: 'max-width:340px' }),
+      h('button', { class: 'btn ghost small', type: 'submit' }, 'Buscar'),
+      h('a', { class: 'btn ghost small', href: '/api/admin/leads.csv?q=' + encodeURIComponent(q), download: 'leads-test-elevation.csv' }, '↓ CSV'));
+    const fmtAxis = (v) => (v === null ? '—' : fmtNum(v));
+    return [search,
+      h('p', { class: 'small muted' }, `${leads.length} ${leads.length === 1 ? 'persona hizo' : 'personas hicieron'} el test en el sitio de presentación. «Registrado» indica que ya creó su cuenta con ese correo.`),
+      leads.length ? h('div', { class: 'table-wrap' }, h('table', { class: 't' },
+        h('thead', {}, h('tr', {}, ['Fecha', 'Nombre', 'Correo', 'País', 'Zona', 'Economía', 'Orden y valores', 'Cuenta'].map((c) => h('th', { scope: 'col' }, c)))),
+        h('tbody', {}, leads.map((l) => h('tr', {},
+          h('td', {}, fmtDate(l.created_at)), h('td', {}, l.name), h('td', {}, l.email), h('td', {}, l.country || '—'), h('td', {}, l.zona || '—'),
+          h('td', {}, fmtAxis(l.economia)), h('td', {}, fmtAxis(l.orden)),
+          h('td', {}, l.registered ? h('span', { class: 'badge ok' }, 'Registrado') : h('span', { class: 'badge' }, 'Pendiente')))))))
+        : h('div', { class: 'card center' }, h('p', { class: 'muted', style: 'margin:0' }, 'Aún no hay resultados del test.'))];
   }
 
   async function adminEvents() {
@@ -1112,7 +1134,7 @@
       switch (root) {
         case '': return state.user ? go('/panel') : await viewLanding();
         case 'login': return authForm('login');
-        case 'registro': return authForm('registro');
+        case 'registro': return authForm('registro', query);
         case 'planes': return await viewPlans();
         case 'panel': return await viewDashboard();
         case 'ruta': return await viewRoute();

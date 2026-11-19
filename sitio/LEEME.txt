@@ -1,0 +1,42 @@
+ELEVATION · SITIO DE PRESENTACIÓN
+==================================
+
+Sitio estático: no necesita base de datos ni programas en el servidor.
+Funciona en cualquier hosting (cPanel, Hostinger, SiteGround, Netlify, Vercel, GitHub Pages…).
+
+CÓMO SUBIRLO
+------------
+1. Abre el administrador de archivos de tu hosting (o un programa FTP como FileZilla).
+2. Entra en la carpeta pública del dominio (normalmente "public_html" o "www").
+3. Sube TODO el contenido de esta carpeta (no la carpeta en sí): index.html, config.js,
+   .htaccess, 404.html y las carpetas css, js, data, img y video.
+   Ojo: .htaccess empieza con punto y algunos programas lo ocultan; actívalos para verlo.
+4. Abre tu dominio en el navegador. Listo.
+
+En Netlify: arrastra esta carpeta a https://app.netlify.com/drop
+
+ANTES DE PUBLICAR (opcional pero recomendado)
+---------------------------------------------
+- config.js → appUrl: escribe la dirección de la plataforma de miembros
+  (por ejemplo 'https://app.tudominio.com'). Así los botones "Mi membresía",
+  "Iniciar mi membresía" y "Crear mi perfil" llevan a la plataforma con los datos
+  del test ya escritos, y cada resultado del test se guarda en la plataforma
+  (Administración → Leads del test).
+  Mientras esté vacío, esos botones llevan al test y no se envía ningún dato.
+- En la plataforma, define SITE_ORIGIN con la dirección de este sitio
+  (por ejemplo https://tudominio.com) para que acepte los resultados del test.
+- index.html → la etiqueta og:image usa "img/og.jpg". Para que la imagen aparezca
+  al compartir el enlace en WhatsApp o redes, cámbiala por la dirección completa,
+  por ejemplo https://tudominio.com/img/og.jpg
+- .htaccess → cuando el dominio tenga SSL, quita los "#" de las 3 líneas de HTTPS.
+
+PARA VERLO EN TU COMPUTADORA
+----------------------------
+Los videos y datos cargan mejor desde un servidor. Con Python instalado:
+  python3 -m http.server 8080
+y abre http://localhost:8080
+
+CRÉDITOS
+--------
+Las fotos de líderes y logos de partidos (img/test) provienen de Wikipedia y cada una
+tiene su propia licencia. Las coordenadas del test son estimaciones preliminares.
